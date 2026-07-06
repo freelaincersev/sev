@@ -109,3 +109,113 @@ dir — DB types live in `lib/database.types.ts`.
 - Report the changed files and a one-line reason for each.
 - Run and report the results of `pnpm build` / `pnpm lint` / `pnpm typecheck`.
 - Ask before installing a new package.
+
+---
+
+# CLAUDE.md (한국어)
+
+이 파일은 이 저장소에서 작업하는 Claude Code(claude.ai/code)에게 지침을 제공합니다.
+(위 영어 원문과 동일한 내용이며, 한국어 참고용입니다.)
+
+## 도메인 컨텍스트
+
+Sev는 **사용자가 소유하는 AI 기억 레이어(user-owned AI memory layer)** 다. 사용자의
+파일·메모·문서를 Markdown 기반 기억으로 만들고, 필요한 맥락만 검색해서 **Context Packet**
+으로 조립해 어떤 LLM에든 넘긴다. 채팅 앱이 아니다.
+
+핵심 엔티티(Postgres 테이블): `profiles` → `projects`(기억 컨테이너) →
+`sources`(업로드 파일 / URL / 붙여넣은 텍스트) → `chunks`(검색 단위) →
+`embeddings`(pgvector). 여기에 `context_packets`(핵심 산출물), `packet_sources`,
+`chat_sessions`/`chat_messages`, `usage_events`.
+
+**데이터 격리가 제품의 핵심 약속이다:** 모든 사용자 소유 행은 `user_id`를 갖고,
+프로젝트 범위 테이블은 `project_id`도 갖는다. 모든 접근은 RLS로 인증된 사용자에게만
+스코프된다 — 사용자·프로젝트를 절대 섞지 않는다.
+
+## 명령어
+
+```bash
+pnpm dev          # 개발 서버 (http://localhost:3000)
+pnpm build        # 프로덕션 빌드 (타입체크 포함)
+pnpm lint         # eslint
+pnpm typecheck    # tsc --noEmit — 빠름, 커밋 전에 실행
+pnpm db:new <name># supabase/migrations 파일 새로 생성
+pnpm db:push      # 대기 중 마이그레이션을 링크된 클라우드 DB에 반영
+pnpm db:diff      # 링크된 클라우드 DB와 마이그레이션 비교
+pnpm db:types     # 스키마에서 lib/database.types.ts 재생성
+```
+
+- **개발은 Supabase 클라우드 프로젝트에 직접 연결해서 동작한다 — 로컬 Docker 없음.**
+  환경변수는 `.env.local`(git 제외)에서 온다.
+- **`supabase db reset`은 절대 실행 금지** — 링크된 클라우드 DB를 통째로 지운다.
+- 스키마 변경 순서: `pnpm db:new` → SQL 작성 → `pnpm db:push` → `pnpm db:types`.
+
+## 아키텍처
+
+Next.js 16 (App Router, React Server Components) + Supabase (Auth, Postgres,
+pgvector, Storage). TypeScript strict, Tailwind v4, shadcn/ui (Radix).
+
+- **인증 & 라우팅:** `proxy.ts`(Next 16의 미들웨어 컨벤션 — 파일명은 `proxy.ts`,
+  export는 `proxy`)가 매 요청마다 Supabase 세션을 갱신하고 라우트를 보호한다.
+  미인증 상태로 `/dashboard`·`/projects/*`에 접근하면 `/login`으로 리다이렉트.
+  라우트 보호는 페이지가 아니라 여기서 처리한다.
+- **라우트 그룹:** `app/(app)/`가 인증 영역 셸(공유 사이드바 레이아웃, `requireUser()`
+  호출)이며 `dashboard/`·`projects/[id]/`를 포함한다. `app/login/`과
+  `app/page.tsx`(랜딩)는 공개.
+- **Supabase 클라이언트**(`lib/supabase/`): `client.ts`(브라우저),
+  `server.ts`(RSC/액션, 쿠키 읽음), `middleware.ts`(`proxy.ts`가 쓰는 세션 갱신 헬퍼),
+  `auth.ts`(`getUser`/`requireUser`). 모두 **publishable** 키를
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`로 사용.
+- **데이터 계층:** 읽기는 `lib/data/*`(서버 쿼리), 변경은 `lib/actions/*`와
+  `app/auth/actions.ts`의 Server Action. 페이지는 이들을 직접 호출하는 Server Component.
+- **DB 보안:** 모든 테이블에 RLS 활성화(`auth.uid() = user_id`). 벡터 검색은
+  `match_chunks` RPC를 통하며, 이 함수는 `security invoker` + `auth.uid()`(+ 선택적
+  프로젝트)로 필터링 — 교차 사용자/프로젝트 검색은 불가능. 원본 파일은 private
+  `sources` 버킷에 저장. 스키마·정책은 `supabase/migrations/`, 생성 타입은
+  `lib/database.types.ts`.
+
+### 폴더 맵
+
+```
+app/            # App Router 라우트
+  (app)/        # 인증 그룹 (사이드바 레이아웃)
+    dashboard/  # 프로젝트 목록 + 생성/삭제
+    projects/[id]/
+  auth/actions.ts  # signIn / signUp / signOut (Server Actions)
+  login/  page.tsx (랜딩)
+components/     # components/ui/ = shadcn; 기능 컴포넌트는 그 옆에
+lib/
+  supabase/     # client / server / middleware / auth
+  data/         # 타입 있는 읽기 쿼리
+  actions/      # Server Action 변경 로직
+  database.types.ts  # 생성 파일 — 직접 수정 금지
+proxy.ts        # 세션 갱신 + 라우트 가드
+supabase/migrations/
+```
+
+참고: 이 프로젝트는 루트에 `app/`를 두고(`src/` 디렉터리 없음) `types/` 디렉터리도 없다 —
+DB 타입은 `lib/database.types.ts`에 있다.
+
+## 코딩 규칙
+
+- **기본은 Server Component.** 인터랙션/상태가 필요할 때만 `'use client'`를 붙인다
+  (예: `auth-form.tsx`, `create-project-dialog.tsx`).
+- **DB 접근은 서버에서만** — Server Action 또는 `server.ts` 클라이언트를 통해. 브라우저에서
+  상승된 권한으로 DB를 질의하지 않는다.
+- shadcn/ui는 **Radix** 변형이다: `asChild`로 합성한다(Base UI의 `render` prop 아님).
+- RLS 불변식 유지: 새 테이블은 `user_id`를 갖고 RLS를 켜고 소유자 정책을 둔다;
+  모든 검색은 `user_id`(+ `project_id`) 범위 안에서만 동작한다.
+
+## 금지 사항
+
+- `any` 타입 사용(TS strict 켜짐) 또는 커밋 코드에 `console.log` 잔존.
+- 비밀값/자격증명 하드코딩.
+- `SUPABASE_SERVICE_ROLE_KEY`(또는 어떤 비밀값이든)를 클라이언트 코드나 `NEXT_PUBLIC_`
+  접두사 뒤에 두는 것 — service-role은 서버 전용이며 RLS를 우회한다.
+- `supabase db reset` 실행(링크된 클라우드 DB를 지움).
+
+## 작업을 마치면
+
+- 변경한 파일과 각각의 한 줄 이유를 보고한다.
+- `pnpm build` / `pnpm lint` / `pnpm typecheck` 실행 결과를 보고한다.
+- 새 패키지 설치 전에 먼저 묻는다.
