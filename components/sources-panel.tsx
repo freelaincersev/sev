@@ -1,0 +1,80 @@
+import { Trash2 } from "lucide-react";
+
+import { AddSourceDialog } from "@/components/add-source-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { deleteSource } from "@/lib/actions/sources";
+import type { SourceWithCount } from "@/lib/data/sources";
+
+function StatusBadge({ status }: { status: string }) {
+  const variant =
+    status === "ready"
+      ? "default"
+      : status === "error"
+        ? "destructive"
+        : "secondary";
+  return <Badge variant={variant}>{status}</Badge>;
+}
+
+export function SourcesPanel({
+  projectId,
+  sources,
+}: {
+  projectId: string;
+  sources: SourceWithCount[];
+}) {
+  return (
+    <section className="rounded-lg border">
+      <header className="flex items-center justify-between border-b px-4 py-3">
+        <div>
+          <h2 className="text-sm font-semibold">Sources</h2>
+          <p className="text-xs text-muted-foreground">
+            {sources.length === 1
+              ? "1 source"
+              : `${sources.length} sources`}{" "}
+            in this project&apos;s memory
+          </p>
+        </div>
+        <AddSourceDialog projectId={projectId} />
+      </header>
+
+      {sources.length === 0 ? (
+        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+          No sources yet. Add Markdown, TXT, or pasted text to build memory.
+        </p>
+      ) : (
+        <ul className="divide-y">
+          {sources.map((s) => (
+            <li key={s.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium">{s.title}</span>
+                  <StatusBadge status={s.status} />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {s.type} · {s.chunk_count} chunk
+                  {s.chunk_count === 1 ? "" : "s"}
+                  {s.status === "error" && s.error_message
+                    ? ` · ${s.error_message}`
+                    : ""}
+                </p>
+              </div>
+              <form action={deleteSource}>
+                <input type="hidden" name="id" value={s.id} />
+                <input type="hidden" name="project_id" value={projectId} />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Delete source"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

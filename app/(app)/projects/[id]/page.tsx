@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
+import { SourcesPanel } from "@/components/sources-panel";
 import {
   Card,
   CardContent,
@@ -10,14 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getProject } from "@/lib/data/projects";
+import { listSources } from "@/lib/data/sources";
 
-/** The three panels that make up the Sev project workspace (strategy §5.4). */
-const PANELS = [
-  {
-    title: "Sources",
-    description:
-      "Add Markdown, TXT, PDF, URLs, or pasted text. Sev converts them into searchable memory.",
-  },
+/** Panels still to be built (strategy §5.4). */
+const UPCOMING = [
   {
     title: "Ask",
     description:
@@ -38,6 +35,8 @@ export default async function ProjectPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
+
+  const sources = await listSources(id);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-10">
@@ -60,8 +59,10 @@ export default async function ProjectPage({
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {PANELS.map((panel) => (
+      <SourcesPanel projectId={id} sources={sources} />
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {UPCOMING.map((panel) => (
           <Card key={panel.title}>
             <CardHeader>
               <CardTitle className="text-base">{panel.title}</CardTitle>
