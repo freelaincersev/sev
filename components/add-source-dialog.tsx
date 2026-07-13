@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function AddSourceDialog({ projectId }: { projectId: string }) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"paste" | "file">("paste");
+  const [mode, setMode] = useState<"paste" | "file" | "url">("paste");
   const [pending, startTransition] = useTransition();
 
   function onSubmit(formData: FormData) {
@@ -68,7 +68,15 @@ export function AddSourceDialog({ projectId }: { projectId: string }) {
             variant={mode === "file" ? "default" : "outline"}
             onClick={() => setMode("file")}
           >
-            Upload .md / .txt
+            Upload .md / .txt / .pdf
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "url" ? "default" : "outline"}
+            onClick={() => setMode("url")}
+          >
+            URL
           </Button>
         </div>
 
@@ -77,7 +85,7 @@ export function AddSourceDialog({ projectId }: { projectId: string }) {
 
           <div className="space-y-2">
             <Label htmlFor="title">
-              Title {mode === "file" ? "(optional)" : ""}
+              Title {mode === "paste" ? "" : "(optional)"}
             </Label>
             <Input id="title" name="title" placeholder="e.g. Competitor research" />
           </div>
@@ -93,14 +101,25 @@ export function AddSourceDialog({ projectId }: { projectId: string }) {
                 required
               />
             </div>
-          ) : (
+          ) : mode === "file" ? (
             <div className="space-y-2">
-              <Label htmlFor="file">File (.md or .txt)</Label>
+              <Label htmlFor="file">File (.md, .txt, or .pdf)</Label>
               <Input
                 id="file"
                 name="file"
                 type="file"
-                accept=".md,.markdown,.txt,text/markdown,text/plain"
+                accept=".md,.markdown,.txt,.pdf,text/markdown,text/plain,application/pdf"
+                required
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="url">Page URL</Label>
+              <Input
+                id="url"
+                name="url"
+                type="url"
+                placeholder="https://example.com/article"
                 required
               />
             </div>

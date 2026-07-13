@@ -2,30 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
+import { AskPanel } from "@/components/ask-panel";
+import { DataUsagePanel } from "@/components/data-usage-panel";
+import { PacketPanel } from "@/components/packet-panel";
 import { SourcesPanel } from "@/components/sources-panel";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { getProject } from "@/lib/data/projects";
+import { listPackets } from "@/lib/data/packets";
 import { listSources } from "@/lib/data/sources";
-
-/** Panels still to be built (strategy §5.4). */
-const UPCOMING = [
-  {
-    title: "Ask",
-    description:
-      "Ask questions and get citation-first answers grounded in this project's memory.",
-  },
-  {
-    title: "Context Packets",
-    description:
-      "Assemble AI-ready context and copy it into ChatGPT, Claude, or Cursor.",
-  },
-];
+import { getProjectSummary } from "@/lib/data/usage";
 
 export default async function ProjectPage({
   params,
@@ -36,7 +20,11 @@ export default async function ProjectPage({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const sources = await listSources(id);
+  const [sources, packets, summary] = await Promise.all([
+    listSources(id),
+    listPackets(id),
+    getProjectSummary(id),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-10">
@@ -61,20 +49,16 @@ export default async function ProjectPage({
 
       <SourcesPanel projectId={id} sources={sources} />
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {UPCOMING.map((panel) => (
-          <Card key={panel.title}>
-            <CardHeader>
-              <CardTitle className="text-base">{panel.title}</CardTitle>
-              <CardDescription>{panel.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <span className="text-xs font-medium text-muted-foreground">
-                Coming next
-              </span>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="mt-4">
+        <AskPanel projectId={id} />
+      </div>
+
+      <div className="mt-4">
+        <PacketPanel projectId={id} packets={packets} />
+      </div>
+
+      <div className="mt-4">
+        <DataUsagePanel projectId={id} summary={summary} />
       </div>
     </div>
   );

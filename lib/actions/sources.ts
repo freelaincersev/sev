@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 
 import { chunkMarkdown } from "@/lib/ingest/chunk";
 import { embedTexts, EMBEDDING_MODEL, toVectorLiteral } from "@/lib/ingest/embed";
+import { fetchUrlAsText } from "@/lib/ingest/fetch-url";
+import { extractPdfText } from "@/lib/ingest/pdf";
+import { checkLimit } from "@/lib/usage/limits";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_CHARS = 200_000;
@@ -22,34 +25,62 @@ export async function addSource(
   const projectId = String(formData.get("project_id") ?? "");
   if (!projectId) return { error: "Missing project." };
 
-  // Content comes either from an uploaded .md/.txt file or pasted text.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const capError = await checkLimit(supabase, user.id, "add_source");
+  if (capError) return { error: capError };
+
+  // Content comes from a URL, an uploaded .md/.txt file, or pasted text.
   let content = "";
   let type = "paste";
   let title = String(formData.get("title") ?? "").trim();
+  let sourceUrl: string | null = null;
 
+  const url = String(formData.get("url") ?? "").trim();
   const file = formData.get("file");
-  if (file instanceof File && file.size > 0) {
-    content = await file.text();
-    type = /\.md$/i.test(file.name) ? "markdown" : "txt";
-    if (!title) title = file.name.replace(/\.(md|txt)$/i, "");
+  if (url) {
+    // Fetch happens only after auth + cap checks (avoid unauthorized/over-cap fetches).
+    try {
+      const page = await fetchUrlAsText(url);
+      content = page.markdown;
+      type = "url";
+      sourceUrl = url;
+      if (!title) title = page.title;
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to fetch URL." };
+    }
+  } else if (file instanceof File && file.size > 0) {
+    const isPdf = /\.pdf$/i.test(file.name) || file.type === "application/pdf";
+    if (isPdf) {
+      try {
+        content = await extractPdfText(new Uint8Array(await file.arrayBuffer()));
+        type = "pdf";
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Failed to read PDF." };
+      }
+      if (!title) title = file.name.replace(/\.pdf$/i, "");
+    } else {
+      content = await file.text();
+      type = /\.md$/i.test(file.name) ? "markdown" : "txt";
+      if (!title) title = file.name.replace(/\.(md|txt)$/i, "");
+    }
   } else {
     content = String(formData.get("content") ?? "");
     type = "paste";
   }
 
   content = content.replace(/\r\n?/g, "\n").trim();
-  if (!content) return { error: "Nothing to add — paste text or choose a file." };
+  if (!content)
+    return { error: "Nothing to add — paste text, choose a file, or enter a URL." };
   if (content.length > MAX_CHARS)
     return {
       error: `Source is too large (${content.length} chars, max ${MAX_CHARS}).`,
     };
   if (!title) title = "Untitled";
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
 
   // Create the source row up front so its status is observable.
   const { data: source, error: srcErr } = await supabase
@@ -59,6 +90,7 @@ export async function addSource(
       project_id: projectId,
       type,
       title,
+      source_url: sourceUrl,
       status: "processing",
     })
     .select("id")
