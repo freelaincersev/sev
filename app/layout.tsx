@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { siteUrl } from "@/lib/site-url";
 
+// Pretendard (KO + EN) via its variable dynamic-subset stylesheet; wired to
+// --font-sans in globals.css. Geist Mono stays for code/packet display.
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -24,7 +22,7 @@ export const metadata: Metadata = {
   },
   // Must match the landing hero copy in app/page.tsx (SEO "본문 일치").
   description:
-    "Sev turns your files, notes, links, and documents into a portable AI memory layer for you and your team — so ChatGPT, Claude, Gemini, and Cursor can work with the context you already own.",
+    "Save your files, notes, and docs to Sev once — then no matter which AI you use, you never repeat yourself again.",
   // Landing is bilingual (en + ko). True hreflang (alternates.languages) is
   // deferred until real /en·/ko routes exist (i18n routing, Day16) — pointing
   // hreflang at non-existent URLs would be worse than none.
@@ -46,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

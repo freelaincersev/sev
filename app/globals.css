@@ -49,73 +49,82 @@
 }
 
 :root {
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  /* Single accent: indigo (hover falls to ~#4338CA via /90). */
-  --primary: #4f46e5;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Fixes the previously self-referential --font-sans (site was falling back to
+     the browser default). Pretendard covers KO + EN; @font-face comes from the
+     pretendard package CSS imported in app/layout.tsx. */
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+
+  /* "Museum White" — a barely-warm white, apple ink, monochrome UI. The only
+     color on the page comes from the mascots, not the chrome. */
+  --background: #fcfcfa; /* warm white (subtle; not cream) */
+  --foreground: #1d1d1f; /* apple ink */
+  --card: #ffffff; /* pure white — floats above the warm bg */
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+  --primary: #1d1d1f; /* ink black button (was indigo) */
+  --primary-foreground: #ffffff;
+  --secondary: #f2f1ec; /* warm light surface */
+  --secondary-foreground: #1d1d1f;
+  --muted: #f2f1ec;
+  --muted-foreground: #86868b; /* warm gray */
+  --accent: #f2f1ec;
+  --accent-foreground: #1d1d1f;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #e8e6e1; /* warm hairline */
+  --input: #e8e6e1;
+  --ring: #c7c4bc; /* warm gray focus */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.75rem;
+  --sidebar: #fbfaf7; /* almost the same tone as the background */
+  --sidebar-foreground: #1d1d1f;
+  --sidebar-primary: #1d1d1f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f1ec;
+  --sidebar-accent-foreground: #1d1d1f;
+  --sidebar-border: #e8e6e1;
+  --sidebar-ring: #c7c4bc;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #6366f1;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Same logic inverted: warm black, off-white ink, off-white primary. */
+  --background: #1c1c1a; /* warm black */
+  --foreground: #f5f5f0; /* off-white ink */
+  --card: #242422; /* lifted warm black */
+  --card-foreground: #f5f5f0;
+  --popover: #242422;
+  --popover-foreground: #f5f5f0;
+  --primary: #f5f5f0; /* off-white (ink inverted) */
+  --primary-foreground: #1c1c1a;
+  --secondary: #2a2a27;
+  --secondary-foreground: #f5f5f0;
+  --muted: #2a2a27;
+  --muted-foreground: #a1a19a; /* warm gray */
+  --accent: #2a2a27;
+  --accent-foreground: #f5f5f0;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: #37352f; /* warm dark hairline */
+  --input: #37352f;
+  --ring: #57564f;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #1c1c1a;
+  --sidebar-foreground: #f5f5f0;
+  --sidebar-primary: #f5f5f0;
+  --sidebar-primary-foreground: #1c1c1a;
+  --sidebar-accent: #2a2a27;
+  --sidebar-accent-foreground: #f5f5f0;
+  --sidebar-border: #37352f;
+  --sidebar-ring: #57564f;
 }
 
 @layer base {

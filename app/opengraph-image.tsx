@@ -55,8 +55,8 @@ export default function OpengraphImage() {
               maxWidth: 940,
             }}
           >
-            A portable AI memory layer for you and your team — works with
-            ChatGPT, Claude, Gemini, and Cursor.
+            A portable AI memory layer you own — works with ChatGPT, Claude,
+            and Gemini.
           </div>
         </div>
 

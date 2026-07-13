@@ -80,7 +80,7 @@ export function PacketPanel({
           placeholder="What do you want to do? e.g. Draft a launch plan using this project's research."
           required
         />
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="rounded-full">
           <Package className="size-4" />
           {pending ? "Building…" : "Build packet"}
         </Button>

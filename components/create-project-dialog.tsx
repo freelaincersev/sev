@@ -24,7 +24,7 @@ export function CreateProjectDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="rounded-full">
           <Plus className="size-4" />
           New project
         </Button>

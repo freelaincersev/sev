@@ -9,8 +9,12 @@ import { Label } from "@/components/ui/label";
 
 const initialState: AuthState = {};
 
-export function AuthForm() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+export function AuthForm({
+  defaultMode = "signin",
+}: {
+  defaultMode?: "signin" | "signup";
+}) {
+  const [mode, setMode] = useState<"signin" | "signup">(defaultMode);
   const action = mode === "signin" ? signIn : signUp;
   const [state, formAction, pending] = useActionState(action, initialState);
 

@@ -22,7 +22,7 @@ export function FeedMeEmpty({
   const persona = resolveMascotPersona(avatarPreset, folderId ?? projectId);
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-      <Mascot persona={persona} mood="hungry" />
+      <Mascot persona={persona} mood="hungry" size={96} />
       <div className="space-y-1">
         <p className="text-sm font-medium">
           {folderName ? `‘${folderName}’ 폴더가 배고파요.` : "아직 배고파요."}

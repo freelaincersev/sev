@@ -52,7 +52,7 @@ export function FolderTree({
               <span
                 className="inline-flex shrink-0 rounded-full"
                 style={
-                  f.color ? { boxShadow: `0 0 0 2px ${f.color}` } : undefined
+                  f.color ? { boxShadow: `0 0 0 1.5px ${f.color}` } : undefined
                 }
               >
                 <Mascot persona={persona} mood={mood} size={22} />
