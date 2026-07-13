@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
 
+import { siteUrl } from "@/lib/site-url";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://sev.app";
+  const base = siteUrl;
   return [
     // Only public pages that actually exist. Right now that's the landing (/).
     // /login is public but a utility page (kept out of the sitemap on purpose).

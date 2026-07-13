@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
+import { siteUrl } from "@/lib/site-url";
 
 import "./globals.css";
 
@@ -16,8 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  // TODO(Day16): replace with the real production domain at deploy time.
-  metadataBase: new URL("https://sev.app"),
+  metadataBase: new URL(siteUrl),
   title: {
     template: "%s | Sev",
     default: "Sev — Your AI memory, owned by you",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://sev.app",
+    url: siteUrl,
     siteName: "Sev",
     // images: add a 1200x630 og-image with alt text once the asset exists.
   },

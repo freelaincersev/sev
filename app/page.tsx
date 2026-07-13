@@ -3,6 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/button";
 import { getUser } from "@/lib/supabase/auth";
+import { siteUrl } from "@/lib/site-url";
 
 const appJsonLd = {
   "@context": "https://schema.org",
@@ -11,7 +12,7 @@ const appJsonLd = {
   // Same sentence as the hero copy and the metadata description ("본문 일치").
   description:
     "Sev turns your files, notes, links, and documents into a portable AI memory layer for you and your team — so ChatGPT, Claude, Gemini, and Cursor can work with the context you already own.",
-  url: "https://sev.app",
+  url: siteUrl,
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   // Landing is bilingual — declare both languages present on the page.

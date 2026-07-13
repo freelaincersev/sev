@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { siteUrl } from "@/lib/site-url";
+
 export default function robots(): MetadataRoute.Robots {
   // robots.txt is only guidance for crawlers — it is NOT a security control.
   // /dashboard, /projects, and /auth are actually protected by Supabase Auth,
@@ -10,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard/", "/projects/", "/auth/"],
     },
-    sitemap: "https://sev.app/sitemap.xml",
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }
