@@ -16,9 +16,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sev — Your AI memory, owned by you",
+  // TODO(Day16): replace with the real production domain at deploy time.
+  metadataBase: new URL("https://sev.app"),
+  title: {
+    template: "%s | Sev",
+    default: "Sev — Your AI memory, owned by you",
+  },
+  // Must match the landing hero copy in app/page.tsx (SEO "본문 일치").
   description:
-    "Sev is a user-owned AI memory layer. Turn your files, notes, and research into portable Context Packets you can use with any LLM.",
+    "Sev turns your files, notes, links, and documents into a portable AI memory layer for you and your team — so ChatGPT, Claude, Gemini, and Cursor can work with the context you already own.",
+  // Landing is bilingual (en + ko). True hreflang (alternates.languages) is
+  // deferred until real /en·/ko routes exist (i18n routing, Day16) — pointing
+  // hreflang at non-existent URLs would be worse than none.
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://sev.app",
+    siteName: "Sev",
+    // images: add a 1200x630 og-image with alt text once the asset exists.
+  },
 };
 
 export default function RootLayout({
