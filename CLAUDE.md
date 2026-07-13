@@ -96,6 +96,29 @@ dir — DB types live in `lib/database.types.ts`.
 - Keep the RLS invariant: any new table gets `user_id`, RLS enabled, and an
   owner policy; any retrieval stays scoped to `user_id` (+ `project_id`).
 
+## Public pages (SEO/GEO)
+
+Rules carried over from `sev/01_Planning/GEO_전략.md` §7 — apply to any public
+page, metadata, `sitemap.ts`, `robots.ts`, or JSON-LD.
+
+- **Copy match ("본문 일치"):** the visible page copy, `metadata.description`, and
+  the JSON-LD `description` must be the **same sentence**.
+- **No unfounded numbers:** never put ratings, review/customer counts, revenue,
+  or ROI estimates in public structured data / OG / body. PRD loss & ROI figures
+  are internal-only.
+- **Public vs private split:** `/dashboard`, `/projects`, `/auth` are never in
+  the sitemap; robots `disallow` them + they are actually protected by Auth/RLS
+  (robots is not a security control).
+- **Sitemap is incremental:** only add a URL to `app/sitemap.ts` once that public
+  page actually ships.
+- **No unshipped features in structured data:** team/pricing etc. go into JSON-LD
+  or keywords only after they appear in the page body.
+- **Cite sources with dates:** interview/market numbers keep source + check-date;
+  only verified figures reach public output.
+- **Site origin is env-driven:** metadataBase/canonical/OG/sitemap/robots read
+  `lib/site-url.ts` (`NEXT_PUBLIC_SITE_URL` ?? Vercel prod URL ?? localhost).
+  Never hardcode a domain. True hreflang waits for real `/en`·`/ko` routes.
+
 ## Never do
 
 - Use the `any` type (TS strict is on) or leave `console.log` in committed code.
@@ -205,6 +228,25 @@ DB 타입은 `lib/database.types.ts`에 있다.
 - shadcn/ui는 **Radix** 변형이다: `asChild`로 합성한다(Base UI의 `render` prop 아님).
 - RLS 불변식 유지: 새 테이블은 `user_id`를 갖고 RLS를 켜고 소유자 정책을 둔다;
   모든 검색은 `user_id`(+ `project_id`) 범위 안에서만 동작한다.
+
+## 공개 페이지 (SEO·GEO)
+
+`sev/01_Planning/GEO_전략.md` §7에서 넘어온 규칙 — 공개 페이지·metadata·`sitemap.ts`·
+`robots.ts`·JSON-LD에 모두 적용한다.
+
+- **본문 일치:** 화면에 보이는 카피 = `metadata.description` = JSON-LD `description`
+  은 **같은 문장**이어야 한다.
+- **근거 없는 수치 금지:** 평점·리뷰/고객 수·매출·ROI 추정치를 공개 구조화 데이터/
+  OG/본문에 넣지 않는다. PRD의 손실·ROI 추정치는 **내부 문서 전용**.
+- **공개/비공개 분리:** `/dashboard`·`/projects`·`/auth`는 sitemap에 절대 넣지 않고
+  robots `disallow` + 실제 보호는 Auth/RLS로 한다(robots는 보안 장치 아님).
+- **sitemap 증분:** 공개 페이지가 실제로 배포될 때만 `app/sitemap.ts`에 한 줄 추가.
+- **미출시 기능 금지:** 팀·가격 등은 본문에 실린 뒤에만 JSON-LD·키워드에 넣는다.
+- **수치엔 출처·확인일:** 인터뷰·시장 수치는 출처+확인일을 병기하고, 검증된 값만
+  공개물에 옮긴다.
+- **도메인은 env 기반:** metadataBase/canonical/OG/sitemap/robots는 `lib/site-url.ts`
+  (`NEXT_PUBLIC_SITE_URL` ?? Vercel prod URL ?? localhost)를 읽는다. 도메인 하드코딩
+  금지. 진짜 hreflang은 `/en`·`/ko` 실제 라우트가 생긴 뒤에.
 
 ## 금지 사항
 
