@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -272,6 +277,57 @@ export type Database = {
           },
         ]
       }
+      folders: {
+        Row: {
+          avatar_preset: string | null
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          project_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_preset?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          project_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_preset?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packet_sources: {
         Row: {
           chunk_id: string | null
@@ -425,6 +481,7 @@ export type Database = {
           content_hash: string | null
           created_at: string
           error_message: string | null
+          folder_id: string | null
           id: string
           metadata: Json
           project_id: string
@@ -440,6 +497,7 @@ export type Database = {
           content_hash?: string | null
           created_at?: string
           error_message?: string | null
+          folder_id?: string | null
           id?: string
           metadata?: Json
           project_id: string
@@ -455,6 +513,7 @@ export type Database = {
           content_hash?: string | null
           created_at?: string
           error_message?: string | null
+          folder_id?: string | null
           id?: string
           metadata?: Json
           project_id?: string
@@ -467,6 +526,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sources_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sources_project_id_fkey"
             columns: ["project_id"]
@@ -672,4 +738,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

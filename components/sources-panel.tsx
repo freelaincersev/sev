@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 
 import { AddSourceDialog } from "@/components/add-source-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -19,28 +19,33 @@ function StatusBadge({ status }: { status: string }) {
 export function SourcesPanel({
   projectId,
   sources,
+  folderId,
+  folderName,
 }: {
   projectId: string;
   sources: SourceWithCount[];
+  folderId?: string;
+  folderName?: string;
 }) {
+  const count =
+    sources.length === 1 ? "1 source" : `${sources.length} sources`;
   return (
     <section className="rounded-lg border">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold">Sources</h2>
           <p className="text-xs text-muted-foreground">
-            {sources.length === 1
-              ? "1 source"
-              : `${sources.length} sources`}{" "}
-            in this project&apos;s memory
+            {folderName ? `${count} in “${folderName}”` : `${count} in memory`}
           </p>
         </div>
-        <AddSourceDialog projectId={projectId} />
+        <AddSourceDialog projectId={projectId} folderId={folderId} />
       </header>
 
       {sources.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-          No sources yet. Add Markdown, TXT, or pasted text to build memory.
+          {folderName
+            ? "This folder is empty. Add a source to file it here."
+            : "No sources yet. Add Markdown, TXT, PDF, a URL, or pasted text to build memory."}
         </p>
       ) : (
         <ul className="divide-y">
@@ -59,6 +64,22 @@ export function SourcesPanel({
                     : ""}
                 </p>
               </div>
+              {s.storage_path ? (
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Download original of ${s.title}`}
+                >
+                  <a
+                    href={`/projects/${projectId}/sources/${s.id}/original`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="size-4" />
+                  </a>
+                </Button>
+              ) : null}
               <form action={deleteSource}>
                 <input type="hidden" name="id" value={s.id} />
                 <input type="hidden" name="project_id" value={projectId} />

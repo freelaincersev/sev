@@ -19,7 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export function AddSourceDialog({ projectId }: { projectId: string }) {
+export function AddSourceDialog({
+  projectId,
+  folderId,
+}: {
+  projectId: string;
+  folderId?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"paste" | "file" | "url">("paste");
   const [pending, startTransition] = useTransition();
@@ -82,6 +88,9 @@ export function AddSourceDialog({ projectId }: { projectId: string }) {
 
         <form action={onSubmit} className="space-y-4">
           <input type="hidden" name="project_id" value={projectId} />
+          {folderId ? (
+            <input type="hidden" name="folder_id" value={folderId} />
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="title">

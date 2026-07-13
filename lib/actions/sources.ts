@@ -11,11 +11,19 @@ import { checkLimit } from "@/lib/usage/limits";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_CHARS = 200_000;
+const STORAGE_BUCKET = "sources";
 
 export type AddSourceState = { error?: string; ok?: boolean };
 
 function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
+}
+
+/** Keep only safe characters in the object name; never let it escape its dir. */
+function sanitizeFilename(name: string): string {
+  const base = name.split("/").pop()?.split("\\").pop() ?? "";
+  const cleaned = base.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/_{2,}/g, "_");
+  return cleaned.replace(/^_+/, "") || "file";
 }
 
 export async function addSource(
@@ -24,6 +32,7 @@ export async function addSource(
 ): Promise<AddSourceState> {
   const projectId = String(formData.get("project_id") ?? "");
   if (!projectId) return { error: "Missing project." };
+  const folderId = String(formData.get("folder_id") ?? "").trim() || null;
 
   const supabase = await createClient();
   const {
@@ -34,16 +43,21 @@ export async function addSource(
   const capError = await checkLimit(supabase, user.id, "add_source");
   if (capError) return { error: capError };
 
-  // Content comes from a URL, an uploaded .md/.txt file, or pasted text.
+  // Resolve the extractable text AND the original bytes we archive verbatim.
+  // Content comes from a URL, an uploaded .md/.txt/.pdf file, or pasted text.
   let content = "";
   let type = "paste";
   let title = String(formData.get("title") ?? "").trim();
   let sourceUrl: string | null = null;
+  // The verbatim original we archive to the private bucket (a Blob so binary
+  // uploads like PDF keep their exact bytes).
+  let originalBlob: Blob;
+  let originalFilename: string;
+  const TEXT_TYPE = "text/markdown; charset=utf-8";
 
   const url = String(formData.get("url") ?? "").trim();
   const file = formData.get("file");
   if (url) {
-    // Fetch happens only after auth + cap checks (avoid unauthorized/over-cap fetches).
     try {
       const page = await fetchUrlAsText(url);
       content = page.markdown;
@@ -53,24 +67,31 @@ export async function addSource(
     } catch (e) {
       return { error: e instanceof Error ? e.message : "Failed to fetch URL." };
     }
+    originalBlob = new Blob([content], { type: TEXT_TYPE });
+    originalFilename = "page.md";
   } else if (file instanceof File && file.size > 0) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    originalBlob = file;
+    originalFilename = file.name;
     const isPdf = /\.pdf$/i.test(file.name) || file.type === "application/pdf";
     if (isPdf) {
       try {
-        content = await extractPdfText(new Uint8Array(await file.arrayBuffer()));
+        content = await extractPdfText(bytes);
         type = "pdf";
       } catch (e) {
         return { error: e instanceof Error ? e.message : "Failed to read PDF." };
       }
       if (!title) title = file.name.replace(/\.pdf$/i, "");
     } else {
-      content = await file.text();
+      content = new TextDecoder().decode(bytes);
       type = /\.md$/i.test(file.name) ? "markdown" : "txt";
       if (!title) title = file.name.replace(/\.(md|txt)$/i, "");
     }
   } else {
     content = String(formData.get("content") ?? "");
     type = "paste";
+    originalBlob = new Blob([content], { type: TEXT_TYPE });
+    originalFilename = "pasted.md";
   }
 
   content = content.replace(/\r\n?/g, "\n").trim();
@@ -82,21 +103,51 @@ export async function addSource(
     };
   if (!title) title = "Untitled";
 
-  // Create the source row up front so its status is observable.
+  // 1) Create the source row first (status = uploaded) so we have a source_id
+  //    for the storage path and its progress is observable.
   const { data: source, error: srcErr } = await supabase
     .from("sources")
     .insert({
       user_id: user.id,
       project_id: projectId,
+      folder_id: folderId,
       type,
       title,
       source_url: sourceUrl,
-      status: "processing",
+      status: "uploaded",
     })
     .select("id")
     .single();
   if (srcErr) return { error: srcErr.message };
 
+  // 2) Archive the original in the private bucket at
+  //    {user_id}/{project_id}/{source_id}/{filename}. The path's first segment
+  //    is the uid, which the storage RLS policy enforces. Uploaded with the
+  //    user's own session (no service_role) so RLS applies.
+  const storagePath = `${user.id}/${projectId}/${source.id}/${sanitizeFilename(
+    originalFilename,
+  )}`;
+  const { error: upErr } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(storagePath, originalBlob, {
+      contentType: originalBlob.type || "application/octet-stream",
+      upsert: true,
+    });
+  if (upErr) {
+    await supabase
+      .from("sources")
+      .update({ status: "error", error_message: `Storage upload failed.`.slice(0, 500) })
+      .eq("id", source.id);
+    revalidatePath(`/projects/${projectId}`);
+    return { error: "Could not store the file. Please try again." };
+  }
+
+  await supabase
+    .from("sources")
+    .update({ storage_path: storagePath, status: "processing" })
+    .eq("id", source.id);
+
+  // 3) Build memory: chunk → embed → ready.
   try {
     const chunks = chunkMarkdown(content);
     if (chunks.length === 0) throw new Error("No indexable content found.");
@@ -167,7 +218,17 @@ export async function deleteSource(formData: FormData) {
   if (!id) return;
 
   const supabase = await createClient();
-  // chunks + embeddings cascade via ON DELETE CASCADE.
+  // Remove the archived original first (Storage isn't tied to the DB by a FK,
+  // so it won't cascade). chunks + embeddings cascade via ON DELETE CASCADE.
+  const { data: src } = await supabase
+    .from("sources")
+    .select("storage_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (src?.storage_path) {
+    await supabase.storage.from(STORAGE_BUCKET).remove([src.storage_path]);
+  }
+
   const { error } = await supabase.from("sources").delete().eq("id", id);
   if (error) throw error;
 
