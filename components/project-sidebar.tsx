@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
+import { FolderDialog } from "@/components/folder-dialog";
 import { FolderTree } from "@/components/folder-tree";
-import { NewFolderDialog } from "@/components/new-folder-dialog";
 import { SignOutButton } from "@/components/sign-out-button";
 import type { FolderWithCount } from "@/lib/data/folders";
 import type { Project } from "@/lib/data/projects";
@@ -44,7 +44,7 @@ export function ProjectSidebar({
       <div className="flex-1 overflow-y-auto p-2">
         <FolderTree projectId={project.id} folders={folders} />
         <div className="mt-1">
-          <NewFolderDialog projectId={project.id} />
+          <FolderDialog projectId={project.id} />
         </div>
       </div>
 

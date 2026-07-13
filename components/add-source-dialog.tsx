@@ -19,6 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+/** Korean object particle 을/를; defaults to 을 for non-Hangul endings. */
+function objectParticle(word: string): string {
+  const ch = word.trim().slice(-1);
+  const code = ch.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    return (code - 0xac00) % 28 !== 0 ? "을" : "를";
+  }
+  return /[aeiou]$/i.test(ch) ? "를" : "을";
+}
+
 export function AddSourceDialog({
   projectId,
   folderId,
@@ -34,7 +44,8 @@ export function AddSourceDialog({
     startTransition(async () => {
       const result = await addSource({}, formData);
       if (result.ok) {
-        toast.success("Source added and indexed.");
+        const t = result.title?.trim() || "자료";
+        toast.success(`‘${t}’${objectParticle(t)} 먹었어요!`);
         setOpen(false);
       } else if (result.error) {
         toast.error(result.error);

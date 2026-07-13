@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 const MAX_CHARS = 200_000;
 const STORAGE_BUCKET = "sources";
 
-export type AddSourceState = { error?: string; ok?: boolean };
+export type AddSourceState = { error?: string; ok?: boolean; title?: string };
 
 function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
@@ -209,7 +209,7 @@ export async function addSource(
   }
 
   revalidatePath(`/projects/${projectId}`);
-  return { ok: true };
+  return { ok: true, title };
 }
 
 export async function deleteSource(formData: FormData) {

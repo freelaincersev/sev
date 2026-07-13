@@ -25,9 +25,10 @@ export default async function ProjectPage({
     getProjectSummary(id),
     listFolders(id),
   ]);
-  const folderName = folderId
-    ? folders.find((f) => f.id === folderId)?.name
+  const activeFolder = folderId
+    ? folders.find((f) => f.id === folderId)
     : undefined;
+  const folderName = activeFolder?.name;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -52,6 +53,7 @@ export default async function ProjectPage({
                     sources={sources}
                     folderId={folderId}
                     folderName={folderName}
+                    folderAvatarPreset={activeFolder?.avatar_preset}
                   />
                 ),
               },

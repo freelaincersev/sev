@@ -1,6 +1,7 @@
 import { Download, Trash2 } from "lucide-react";
 
 import { AddSourceDialog } from "@/components/add-source-dialog";
+import { FeedMeEmpty } from "@/components/feed-me-empty";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteSource } from "@/lib/actions/sources";
@@ -21,11 +22,13 @@ export function SourcesPanel({
   sources,
   folderId,
   folderName,
+  folderAvatarPreset,
 }: {
   projectId: string;
   sources: SourceWithCount[];
   folderId?: string;
   folderName?: string;
+  folderAvatarPreset?: string | null;
 }) {
   const count =
     sources.length === 1 ? "1 source" : `${sources.length} sources`;
@@ -42,11 +45,12 @@ export function SourcesPanel({
       </header>
 
       {sources.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-          {folderName
-            ? "This folder is empty. Add a source to file it here."
-            : "No sources yet. Add Markdown, TXT, PDF, a URL, or pasted text to build memory."}
-        </p>
+        <FeedMeEmpty
+          projectId={projectId}
+          folderId={folderId}
+          folderName={folderName}
+          avatarPreset={folderAvatarPreset}
+        />
       ) : (
         <ul className="divide-y">
           {sources.map((s) => (
