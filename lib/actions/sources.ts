@@ -4,7 +4,12 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { chunkMarkdown } from "@/lib/ingest/chunk";
-import { embedTexts, EMBEDDING_MODEL, toVectorLiteral } from "@/lib/ingest/embed";
+import {
+  averageVectors,
+  embedTexts,
+  EMBEDDING_MODEL,
+  toVectorLiteral,
+} from "@/lib/ingest/embed";
 import { fetchUrlAsText } from "@/lib/ingest/fetch-url";
 import { extractPdfText } from "@/lib/ingest/pdf";
 import { generateSummary } from "@/lib/retrieval/summarize";
@@ -260,9 +265,17 @@ async function ingestSource({
       metadata: { source_id: source.id, model: EMBEDDING_MODEL, chunks: chunks.length },
     });
 
+    // Source centroid for cross-project reuse (#3): the mean of this source's
+    // chunk vectors, ranked against other projects' centroids by related_sources.
+    const centroid = averageVectors(vectors);
+
     await supabase
       .from("sources")
-      .update({ status: "ready", content_hash: sha256(content) })
+      .update({
+        status: "ready",
+        content_hash: sha256(content),
+        avg_embedding: centroid ? toVectorLiteral(centroid) : null,
+      })
       .eq("id", source.id);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Ingestion failed.";

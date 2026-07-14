@@ -492,6 +492,7 @@ export type Database = {
       }
       sources: {
         Row: {
+          avg_embedding: string | null
           content_hash: string | null
           created_at: string
           error_message: string | null
@@ -515,6 +516,7 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          avg_embedding?: string | null
           content_hash?: string | null
           created_at?: string
           error_message?: string | null
@@ -538,6 +540,7 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          avg_embedding?: string | null
           content_hash?: string | null
           created_at?: string
           error_message?: string | null
@@ -701,6 +704,18 @@ export type Database = {
           page: number
           similarity: number
           source_id: string
+        }[]
+      }
+      related_sources: {
+        Args: { match_count?: number; p_project_id: string }
+        Returns: {
+          intent: string
+          origin: string
+          project_title: string
+          similarity: number
+          source_id: string
+          source_project_id: string
+          source_title: string
         }[]
       }
     }

@@ -40,3 +40,19 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
 export function toVectorLiteral(vec: number[]): string {
   return JSON.stringify(vec);
 }
+
+/**
+ * Element-wise mean of a set of vectors — a source's centroid, used for
+ * cross-project similarity (#3). Cosine distance normalizes magnitude, so the
+ * raw mean is fine as a query vector. Returns null for an empty input.
+ */
+export function averageVectors(vectors: number[][]): number[] | null {
+  if (vectors.length === 0) return null;
+  const dim = vectors[0].length;
+  const sum = new Array<number>(dim).fill(0);
+  for (const v of vectors) {
+    for (let i = 0; i < dim; i++) sum[i] += v[i];
+  }
+  for (let i = 0; i < dim; i++) sum[i] /= vectors.length;
+  return sum;
+}

@@ -1,9 +1,11 @@
 import { AskPanel } from "@/components/ask-panel";
 import { DataUsagePanel } from "@/components/data-usage-panel";
+import { ReuseCard } from "@/components/reuse-card";
 import { SourcesPanel } from "@/components/sources-panel";
 import { WorkspaceTabs } from "@/components/workspace-tabs";
 import { listFolders } from "@/lib/data/folders";
 import { listPackets } from "@/lib/data/packets";
+import { getRelatedProjects } from "@/lib/data/related";
 import { listSources } from "@/lib/data/sources";
 import { getProjectSummary } from "@/lib/data/usage";
 
@@ -18,11 +20,12 @@ export default async function ProjectPage({
   const { folder, tab, q } = await searchParams;
   const folderId = folder || undefined;
 
-  const [sources, packets, summary, folders] = await Promise.all([
+  const [sources, packets, summary, folders, related] = await Promise.all([
     listSources(id, folderId),
     listPackets(id),
     getProjectSummary(id),
     listFolders(id),
+    getRelatedProjects(id),
   ]);
   const activeFolder = folderId
     ? folders.find((f) => f.id === folderId)
@@ -34,12 +37,15 @@ export default async function ProjectPage({
       {/* Main: keep the workspace focused on asking. */}
       <main className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
         <div className="mx-auto flex w-full min-h-0 max-w-4xl flex-1 flex-col px-4 lg:px-6">
-          <AskPanel
-            projectId={id}
-            folderId={folderId}
-            folderName={folderName}
-            initialQuery={q}
-          />
+          <ReuseCard projectId={id} related={related} />
+          <div className="flex min-h-0 flex-1 flex-col">
+            <AskPanel
+              projectId={id}
+              folderId={folderId}
+              folderName={folderName}
+              initialQuery={q}
+            />
+          </div>
         </div>
       </main>
 
