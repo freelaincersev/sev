@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { DashboardAsk } from "@/components/dashboard-ask";
+import { DashboardCapture } from "@/components/dashboard-capture";
 import { RecentPackets } from "@/components/recent-packets";
 import { getDashboardOverview } from "@/lib/data/dashboard";
 import { listRecentPackets } from "@/lib/data/packets";
@@ -87,8 +88,11 @@ export default async function DashboardPage() {
 
       {/* Ask-first: land on the dashboard and immediately use your memory. */}
       {recent ? (
-        <section className="mb-8">
+        <section className="mb-8 space-y-3">
           <DashboardAsk
+            projects={projects.map((p) => ({ id: p.id, title: p.title }))}
+          />
+          <DashboardCapture
             projects={projects.map((p) => ({ id: p.id, title: p.title }))}
           />
         </section>
