@@ -1,6 +1,7 @@
 import { AddSourceDialog } from "@/components/add-source-dialog";
 import { FeedMeEmpty } from "@/components/feed-me-empty";
 import { SourceItem } from "@/components/source-item";
+import { SourceUploader } from "@/components/source-uploader";
 import type { SourceWithCount } from "@/lib/data/sources";
 
 export function SourcesPanel({
@@ -30,20 +31,22 @@ export function SourcesPanel({
         <AddSourceDialog projectId={projectId} folderId={folderId} />
       </header>
 
-      {sources.length === 0 ? (
-        <FeedMeEmpty
-          projectId={projectId}
-          folderId={folderId}
-          folderName={folderName}
-          avatarPreset={folderAvatarPreset}
-        />
-      ) : (
-        <ul className="divide-y">
-          {sources.map((s) => (
-            <SourceItem key={s.id} source={s} projectId={projectId} />
-          ))}
-        </ul>
-      )}
+      <SourceUploader projectId={projectId} folderId={folderId}>
+        {sources.length === 0 ? (
+          <FeedMeEmpty
+            projectId={projectId}
+            folderId={folderId}
+            folderName={folderName}
+            avatarPreset={folderAvatarPreset}
+          />
+        ) : (
+          <ul className="divide-y">
+            {sources.map((s) => (
+              <SourceItem key={s.id} source={s} projectId={projectId} />
+            ))}
+          </ul>
+        )}
+      </SourceUploader>
     </section>
   );
 }

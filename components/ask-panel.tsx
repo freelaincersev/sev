@@ -111,6 +111,9 @@ export function AskPanel({
   const [model, setModel] = useState<ChatModelKey>(DEFAULT_CHAT_MODEL_KEY);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Which answer is capturing an intent line before saving, and its draft.
+  const [savingIndex, setSavingIndex] = useState<number | null>(null);
+  const [intentDraft, setIntentDraft] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -187,7 +190,7 @@ export function AskPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
 
-  function onSave(index: number) {
+  function onSave(index: number, intent: string) {
     const m = messages[index];
     if (m.role !== "assistant" || !m.query || m.saved) return;
     startSaving(async () => {
@@ -196,9 +199,12 @@ export function AskPanel({
       formData.set("query", m.query ?? "");
       formData.set("answer", m.text);
       if (m.model) formData.set("model", m.model);
+      if (intent.trim()) formData.set("intent", intent.trim());
       const res = await saveAnswerToMemory(formData);
       if (res.ok) {
         toast.success("Answer saved to memory.");
+        setSavingIndex(null);
+        setIntentDraft("");
         setMessages((msgs) =>
           msgs.map((mm, j) => (j === index ? { ...mm, saved: true } : mm)),
         );
@@ -274,31 +280,75 @@ export function AskPanel({
                       <Sources results={m.results} />
                     ) : null}
                     {m.query && m.results && m.results.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full"
-                          disabled={m.saved || saving}
-                          onClick={() => onSave(i)}
-                        >
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {m.saved ? (
-                            <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="rounded-full"
+                              disabled
+                            >
                               <BookmarkCheck className="size-4" />
                               Saved to memory
-                            </>
-                          ) : (
-                            <>
+                            </Button>
+                          ) : savingIndex === i ? null : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="rounded-full"
+                              onClick={() => {
+                                setSavingIndex(i);
+                                setIntentDraft("");
+                              }}
+                            >
                               <Bookmark className="size-4" />
-                              {saving ? "Saving…" : "Save to memory"}
-                            </>
+                              Save to memory
+                            </Button>
                           )}
-                        </Button>
-                        <AnswerExportDialog
-                          projectId={projectId}
-                          query={m.query}
-                        />
+                          <AnswerExportDialog
+                            projectId={projectId}
+                            query={m.query}
+                          />
+                        </div>
+                        {savingIndex === i && !m.saved ? (
+                          <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-2">
+                            <input
+                              autoFocus
+                              value={intentDraft}
+                              onChange={(e) => setIntentDraft(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  onSave(i, intentDraft);
+                                }
+                              }}
+                              placeholder="Why does this matter? (optional)"
+                              className="min-w-0 flex-1 bg-transparent px-2 py-1 text-sm outline-none placeholder:text-muted-foreground"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="rounded-full"
+                              disabled={saving}
+                              onClick={() => onSave(i, intentDraft)}
+                            >
+                              {saving ? "Saving…" : "Save"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="rounded-full"
+                              disabled={saving}
+                              onClick={() => onSave(i, "")}
+                            >
+                              Skip
+                            </Button>
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>
