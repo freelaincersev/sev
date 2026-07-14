@@ -13,7 +13,7 @@ export function AppSidebar({
   projects: SidebarProject[];
 }) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r bg-muted/30">
+    <aside className="hidden w-60 shrink-0 flex-col border-r bg-muted/30 lg:flex">
       <div className="p-4">
         <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
           Sev

@@ -14,7 +14,9 @@ export default async function DashboardLayout({
         email={user.email ?? ""}
         projects={projects.map((p) => ({ id: p.id, title: p.title }))}
       />
-      <div className="flex flex-1 flex-col overflow-auto">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col overflow-auto">
+        {children}
+      </div>
     </>
   );
 }
