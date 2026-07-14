@@ -27,6 +27,7 @@ export async function askQuestion(
 ): Promise<AskState> {
   const projectId = String(formData.get("project_id") ?? "");
   const query = String(formData.get("query") ?? "").trim();
+  const modelKey = String(formData.get("model") ?? "");
   if (!projectId) return { error: "Missing project." };
   if (!query) return { error: "Type a question to ask this project's memory." };
 
@@ -62,7 +63,7 @@ export async function askQuestion(
       };
     }
 
-    const answer = await generateAnswer(query, chunks);
+    const answer = await generateAnswer(query, chunks, modelKey);
 
     await supabase.from("usage_events").insert([
       {
@@ -77,7 +78,7 @@ export async function askQuestion(
         project_id: projectId,
         event_type: "generation",
         tokens: answer.tokens,
-        metadata: { model: answer.model, snippets: chunks.length },
+        metadata: { model: answer.apiModel, snippets: chunks.length },
       },
     ]);
 

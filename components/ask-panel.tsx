@@ -10,6 +10,11 @@ import {
 import { Send } from "lucide-react";
 
 import { askQuestion } from "@/lib/actions/retrieval";
+import {
+  CHAT_MODELS,
+  DEFAULT_CHAT_MODEL_KEY,
+  type ChatModelKey,
+} from "@/lib/retrieval/models";
 import type { RetrievedChunk } from "@/lib/retrieval/search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -80,6 +85,7 @@ function Sources({ results }: { results: RetrievedChunk[] }) {
 export function AskPanel({ projectId }: { projectId: string }) {
   const [pending, startTransition] = useTransition();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [model, setModel] = useState<ChatModelKey>(DEFAULT_CHAT_MODEL_KEY);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -171,6 +177,19 @@ export function AskPanel({ projectId }: { projectId: string }) {
         className="flex gap-2 border-t p-3"
       >
         <input type="hidden" name="project_id" value={projectId} />
+        <select
+          name="model"
+          value={model}
+          onChange={(e) => setModel(e.target.value as ChatModelKey)}
+          aria-label="AI model"
+          className="shrink-0 rounded-lg border bg-background px-2 text-sm outline-none focus-visible:border-ring"
+        >
+          {CHAT_MODELS.map((m) => (
+            <option key={m.key} value={m.key}>
+              {m.label}
+            </option>
+          ))}
+        </select>
         <Input
           name="query"
           placeholder="Ask a question about this project…"
