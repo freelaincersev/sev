@@ -47,7 +47,7 @@ export default async function LandingPage() {
             <span className="block whitespace-nowrap">use it anywhere.</span>
           </h1>
           <p lang="ko" className="text-base text-muted-foreground">
-            당신이 소유하는 AI 기억, 어디서든.
+            당신이 소유하는 AI 기억, 어디서든 사용하세요.
           </p>
           <div className="pointer-events-none mt-10 text-muted-foreground">
             <ChevronDown className="size-6 animate-bounce" aria-hidden />
@@ -63,9 +63,6 @@ export default async function LandingPage() {
           <p className="text-lg text-muted-foreground">
             Save your files, notes, and docs to Sev once — then no matter which
             AI you use, you never repeat yourself again.
-          </p>
-          <p lang="ko" className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            아직도 AI에게 매번 설명하세요?
           </p>
           <p lang="ko" className="text-lg text-muted-foreground">
             자료를 Sev에 한 번만 담아두세요. 어떤 AI를 쓰든, 더 이상 같은 말을
