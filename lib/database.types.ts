@@ -499,6 +499,7 @@ export type Database = {
           id: string
           intent: string | null
           metadata: Json
+          origin: string | null
           project_id: string
           source_url: string | null
           status: string
@@ -521,6 +522,7 @@ export type Database = {
           id?: string
           intent?: string | null
           metadata?: Json
+          origin?: string | null
           project_id: string
           source_url?: string | null
           status?: string
@@ -543,6 +545,7 @@ export type Database = {
           id?: string
           intent?: string | null
           metadata?: Json
+          origin?: string | null
           project_id?: string
           source_url?: string | null
           status?: string

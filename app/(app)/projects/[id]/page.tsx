@@ -33,7 +33,7 @@ export default async function ProjectPage({
     <div className="flex min-h-dvh w-full min-w-0 flex-col lg:h-dvh lg:min-h-0 lg:flex-row">
       {/* Main: keep the workspace focused on asking. */}
       <main className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
-        <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 lg:px-6">
+        <div className="mx-auto flex w-full min-h-0 max-w-4xl flex-1 flex-col px-4 lg:px-6">
           <AskPanel
             projectId={id}
             folderId={folderId}

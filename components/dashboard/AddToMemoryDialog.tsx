@@ -178,6 +178,28 @@ export function AddToMemoryDialog({ projects }: { projects: DialogProject[] }) {
             </p>
           </div>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="atm-origin">
+              Where from?{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </Label>
+            <select
+              id="atm-origin"
+              name="origin"
+              defaultValue=""
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:border-ring"
+            >
+              <option value="">Not specified</option>
+              <option value="Perplexity">Perplexity</option>
+              <option value="ChatGPT">ChatGPT</option>
+              <option value="Claude">Claude</option>
+              <option value="Gemini">Gemini</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
           <DialogFooter>
             <Button type="submit" disabled={pending || !projectId}>
               {pending ? "Saving…" : "Save to memory"}

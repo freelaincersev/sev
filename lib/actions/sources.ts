@@ -37,6 +37,8 @@ export async function addSource(
   // One line of user intent ("why this matters for the project"): stored, and
   // prepended to the embedded content so it's a retrieval signal immediately.
   const intent = String(formData.get("intent") ?? "").trim() || null;
+  // Provenance: which AI / where this came from (e.g. "Perplexity").
+  const origin = String(formData.get("origin") ?? "").trim() || null;
 
   const supabase = await createClient();
   const {
@@ -126,6 +128,7 @@ export async function addSource(
     // (originalBlob) stays the raw material.
     content: intent ? `> Why this matters: ${intent}\n\n${content}` : content,
     intent,
+    origin,
     originalBlob,
     originalFilename,
   });
@@ -143,6 +146,7 @@ type IngestInput = {
   originalBlob: Blob;
   originalFilename: string;
   intent?: string | null;
+  origin?: string | null;
 };
 
 /**
@@ -161,6 +165,7 @@ async function ingestSource({
   originalBlob,
   originalFilename,
   intent = null,
+  origin = null,
 }: IngestInput): Promise<AddSourceState> {
   // 1) Create the source row first (status = uploaded) so we have a source_id
   //    for the storage path and its progress is observable.
@@ -174,6 +179,7 @@ async function ingestSource({
       title,
       source_url: sourceUrl,
       intent,
+      origin,
       status: "uploaded",
     })
     .select("id")

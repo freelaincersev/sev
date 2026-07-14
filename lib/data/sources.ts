@@ -13,6 +13,7 @@ export type Source = {
   summary: string | null;
   summary_model: string | null;
   intent: string | null;
+  origin: string | null;
   created_at: string;
 };
 

@@ -84,6 +84,7 @@ export function SourceItem({
           <p className="pl-[1.125rem] text-xs text-muted-foreground">
             {source.type.replace("_", " ")} · {source.chunk_count} chunk
             {source.chunk_count === 1 ? "" : "s"}
+            {source.origin ? ` · from ${source.origin}` : ""}
             {source.status === "error" && source.error_message
               ? ` · ${source.error_message}`
               : ""}
