@@ -40,13 +40,14 @@ export default async function LandingPage() {
 
         {/* Hero: the promise, centered; everything else scrolls below. */}
         <section className="flex min-h-[calc(100svh-3.5rem)] flex-col items-center justify-center gap-6 px-6 text-center">
-          {/* Fluid size (clamp) + nowrap so it always stays on one line,
-              shrinking on narrow screens instead of wrapping. */}
-          <h1 className="whitespace-nowrap text-[clamp(1.3rem,5.6vw,4.5rem)] font-semibold tracking-[-0.03em]">
-            Own your AI memory.
+          {/* Two lines; fluid size (clamp) + per-line nowrap so each line
+              shrinks on narrow screens instead of wrapping further. */}
+          <h1 className="text-[clamp(1.3rem,5.6vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
+            <span className="block whitespace-nowrap">Own your AI memory,</span>
+            <span className="block whitespace-nowrap">use it anywhere.</span>
           </h1>
           <p lang="ko" className="text-base text-muted-foreground">
-            당신이 소유하는 AI 기억.
+            당신이 소유하는 AI 기억, 어디서든.
           </p>
           <div className="pointer-events-none mt-10 text-muted-foreground">
             <ChevronDown className="size-6 animate-bounce" aria-hidden />
