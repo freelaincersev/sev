@@ -406,27 +406,41 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          team_id: string | null
           title: string
           updated_at: string
           user_id: string
+          visibility: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
+          team_id?: string | null
           title: string
           updated_at?: string
           user_id: string
+          visibility?: string
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
+          team_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
+          visibility?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       source_versions: {
         Row: {
@@ -491,10 +505,12 @@ export type Database = {
           summary: string | null
           summary_created_at: string | null
           summary_model: string | null
+          team_id: string | null
           title: string
           type: string
           updated_at: string
           user_id: string
+          visibility: string
         }
         Insert: {
           content_hash?: string | null
@@ -510,10 +526,12 @@ export type Database = {
           summary?: string | null
           summary_created_at?: string | null
           summary_model?: string | null
+          team_id?: string | null
           title: string
           type: string
           updated_at?: string
           user_id: string
+          visibility?: string
         }
         Update: {
           content_hash?: string | null
@@ -529,10 +547,12 @@ export type Database = {
           summary?: string | null
           summary_created_at?: string | null
           summary_model?: string | null
+          team_id?: string | null
           title?: string
           type?: string
           updated_at?: string
           user_id?: string
+          visibility?: string
         }
         Relationships: [
           {
@@ -549,7 +569,70 @@ export type Database = {
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sources_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          role: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          plan: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          plan?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          plan?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       usage_events: {
         Row: {
@@ -597,6 +680,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_team_member: { Args: { p_team: string }; Returns: boolean }
       match_chunks: {
         Args: {
           match_count?: number
