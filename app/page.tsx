@@ -14,7 +14,7 @@ const appJsonLd = {
   name: "Sev",
   // Same sentence as the on-page copy and the metadata description ("본문 일치").
   description:
-    "Save your files, notes, and docs to Sev once — then no matter which AI you use, you never repeat yourself again.",
+    "Sev turns your project's files, notes, and AI answers into reusable knowledge you can bring to any AI.",
   url: "https://sev.app",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
@@ -43,11 +43,11 @@ export default async function LandingPage() {
           {/* Two lines; fluid size (clamp) + per-line nowrap so each line
               shrinks on narrow screens instead of wrapping further. */}
           <h1 className="text-[clamp(1.3rem,5.6vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
-            <span className="block whitespace-nowrap">Own your AI memory,</span>
-            <span className="block whitespace-nowrap">use it anywhere.</span>
+            <span className="block whitespace-nowrap">Turn AI answers into</span>
+            <span className="block whitespace-nowrap">project knowledge.</span>
           </h1>
           <p lang="ko" className="text-base text-muted-foreground">
-            당신이 소유하는 AI 기억, 어디서든 사용하세요.
+            AI의 답을, 프로젝트의 지식으로.
           </p>
           <div className="pointer-events-none mt-10 text-muted-foreground">
             <ChevronDown className="size-6 animate-bounce" aria-hidden />
@@ -61,12 +61,12 @@ export default async function LandingPage() {
             Stop re-explaining yourself to every AI.
           </h2>
           <p className="text-lg text-muted-foreground">
-            Save your files, notes, and docs to Sev once — then no matter which
-            AI you use, you never repeat yourself again.
+            Sev turns your project&apos;s files, notes, and AI answers into
+            reusable knowledge you can bring to any AI.
           </p>
           <p lang="ko" className="text-lg text-muted-foreground">
-            자료를 Sev에 한 번만 담아두세요. 어떤 AI를 쓰든, 더 이상 같은 말을
-            반복할 필요가 없어집니다.
+            Sev는 프로젝트의 파일·메모·AI 답변을 어떤 AI에서든 다시 쓸 수 있는
+            지식으로 만듭니다.
           </p>
         </Reveal>
       </section>

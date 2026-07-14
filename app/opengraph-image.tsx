@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 // Open Graph card shown when a Sev link is shared (KakaoTalk, Slack, X, …).
 // Generated in code — no image asset to maintain, brand indigo (#4f46e5).
-export const alt = "Sev — user-owned AI memory layer";
+export const alt = "Sev — turn AI answers into project knowledge";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -32,7 +32,7 @@ export default function OpengraphImage() {
             color: "#a5b4fc",
           }}
         >
-          SEV · USER-OWNED AI MEMORY LAYER
+          SEV · AI KNOWLEDGE WORKSPACE
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -44,7 +44,7 @@ export default function OpengraphImage() {
               lineHeight: 1.05,
             }}
           >
-            Stop re-explaining yourself to every AI.
+            Turn AI answers into project knowledge.
           </div>
           <div
             style={{
@@ -55,7 +55,7 @@ export default function OpengraphImage() {
               maxWidth: 940,
             }}
           >
-            A portable AI memory layer you own — works with ChatGPT, Claude,
+            Reusable project knowledge you own — works with ChatGPT, Claude,
             and Gemini.
           </div>
         </div>

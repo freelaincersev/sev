@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     template: "%s | Sev",
-    default: "Sev — Your AI memory, owned by you",
+    default: "Sev — Turn AI answers into project knowledge",
   },
-  // Must match the landing hero copy in app/page.tsx (SEO "본문 일치").
+  // Must match the landing description copy in app/page.tsx (SEO "본문 일치").
   description:
-    "Save your files, notes, and docs to Sev once — then no matter which AI you use, you never repeat yourself again.",
+    "Sev turns your project's files, notes, and AI answers into reusable knowledge you can bring to any AI.",
   // Landing is bilingual (en + ko). True hreflang (alternates.languages) is
   // deferred until real /en·/ko routes exist (i18n routing, Day16) — pointing
   // hreflang at non-existent URLs would be worse than none.
