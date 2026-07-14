@@ -78,6 +78,7 @@ export async function askQuestion(
   const projectId = String(formData.get("project_id") ?? "");
   const query = String(formData.get("query") ?? "").trim();
   const modelKey = String(formData.get("model") ?? "");
+  const folderId = String(formData.get("folder_id") ?? "") || undefined;
   const history = parseHistory(String(formData.get("history") ?? ""));
   if (!projectId) return { error: "Missing project." };
   if (!query) return { error: "Type a question to ask this project's memory." };
@@ -96,6 +97,7 @@ export async function askQuestion(
     // back-references resolve; the user still sees just their question.
     const { chunks, queryTokens } = await searchChunks(supabase, {
       projectId,
+      folderId,
       query: buildRetrievalQuery(query, history),
     });
 

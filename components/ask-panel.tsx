@@ -8,7 +8,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { ArrowUp, Bookmark, BookmarkCheck } from "lucide-react";
+import { ArrowUp, Bookmark, BookmarkCheck, Folder } from "lucide-react";
 import { toast } from "sonner";
 
 import { askQuestion } from "@/lib/actions/retrieval";
@@ -93,7 +93,15 @@ function Sources({ results }: { results: RetrievedChunk[] }) {
   );
 }
 
-export function AskPanel({ projectId }: { projectId: string }) {
+export function AskPanel({
+  projectId,
+  folderId,
+  folderName,
+}: {
+  projectId: string;
+  folderId?: string;
+  folderName?: string;
+}) {
   const [pending, startTransition] = useTransition();
   const [saving, startSaving] = useTransition();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -124,6 +132,8 @@ export function AskPanel({ projectId }: { projectId: string }) {
     formData.set("project_id", projectId);
     formData.set("query", query);
     formData.set("model", model);
+    // When a folder is open, scope retrieval to just that folder's sources.
+    if (folderId) formData.set("folder_id", folderId);
     // Send prior turns so follow-ups ("summarize what I just listed") resolve.
     formData.set(
       "history",
@@ -182,6 +192,16 @@ export function AskPanel({ projectId }: { projectId: string }) {
 
   return (
     <section className="flex h-[calc(100dvh-8rem)] min-h-[30rem] flex-col lg:h-full lg:min-h-0">
+      {folderName ? (
+        <div className="flex items-center justify-center gap-1.5 border-b bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
+          <Folder className="size-3.5 shrink-0" />
+          <span>
+            Answering only within{" "}
+            <span className="font-medium text-foreground">{folderName}</span>
+          </span>
+        </div>
+      ) : null}
+
       {/* Conversation (grows; composer stays pinned at the bottom). */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-1 py-6">

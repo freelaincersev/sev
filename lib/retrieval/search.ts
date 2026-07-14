@@ -32,9 +32,9 @@ export type SearchResult = {
  */
 export async function searchChunks(
   supabase: ServerClient,
-  opts: { projectId: string; query: string; k?: number },
+  opts: { projectId: string; query: string; k?: number; folderId?: string },
 ): Promise<SearchResult> {
-  const { projectId, query, k = TOP_K } = opts;
+  const { projectId, query, k = TOP_K, folderId } = opts;
 
   const [queryVector] = await embedTexts([query]);
 
@@ -42,6 +42,8 @@ export async function searchChunks(
     query_embedding: toVectorLiteral(queryVector),
     match_count: k,
     p_project_id: projectId,
+    // When a folder is selected, answer using ONLY that folder's sources.
+    p_folder_id: folderId ?? undefined,
   });
   if (matchErr) throw matchErr;
 

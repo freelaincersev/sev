@@ -684,6 +684,7 @@ export type Database = {
       match_chunks: {
         Args: {
           match_count?: number
+          p_folder_id?: string
           p_project_id?: string
           query_embedding: string
         }
