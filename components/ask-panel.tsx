@@ -181,7 +181,7 @@ export function AskPanel({ projectId }: { projectId: string }) {
   const empty = messages.length === 0 && !pending;
 
   return (
-    <section className="flex h-[calc(100dvh-8rem)] min-h-[30rem] flex-col">
+    <section className="flex h-[calc(100dvh-8rem)] min-h-[30rem] flex-col lg:h-full lg:min-h-0">
       {/* Conversation (grows; composer stays pinned at the bottom). */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-1 py-6">

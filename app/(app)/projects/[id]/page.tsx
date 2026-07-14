@@ -30,49 +30,50 @@ export default async function ProjectPage({
   const folderName = activeFolder?.name;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-10">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,400px)]">
-        {/* Main: keep the workspace focused on asking. */}
-        <main className="min-w-0">
+    <div className="flex min-h-dvh w-full min-w-0 flex-col lg:h-dvh lg:min-h-0 lg:flex-row">
+      {/* Main: keep the workspace focused on asking. */}
+      <main className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
+        <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 lg:px-6">
           <AskPanel projectId={id} />
-        </main>
+        </div>
+      </main>
 
-        {/* Right rail: sources and data/usage tucked into tabs. Packets are
-            created via the Export action on each Ask answer, not a tab. */}
-        <aside className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-          <WorkspaceTabs
-            focusKey="sources"
-            focusToken={folderId}
-            defaultKey={tab === "usage" ? "usage" : undefined}
-            tabs={[
-              {
-                key: "sources",
-                label: "Sources",
-                content: (
-                  <SourcesPanel
-                    projectId={id}
-                    sources={sources}
-                    folderId={folderId}
-                    folderName={folderName}
-                    folderAvatarPreset={activeFolder?.avatar_preset}
-                  />
-                ),
-              },
-              {
-                key: "usage",
-                label: "Data & Usage",
-                content: (
-                  <DataUsagePanel
-                    projectId={id}
-                    summary={summary}
-                    packets={packets}
-                  />
-                ),
-              },
-            ]}
-          />
-        </aside>
-      </div>
+      {/* Right rail: a tinted, full-height panel mirroring the left sidebar —
+          sources and data/usage tucked into tabs. Packets are created via the
+          Export action on each Ask answer, not a tab. */}
+      <aside className="shrink-0 border-t bg-muted/30 lg:flex lg:w-[380px] lg:flex-col lg:overflow-hidden lg:border-l lg:border-t-0">
+        <WorkspaceTabs
+          focusKey="sources"
+          focusToken={folderId}
+          defaultKey={tab === "usage" ? "usage" : undefined}
+          tabs={[
+            {
+              key: "sources",
+              label: "Sources",
+              content: (
+                <SourcesPanel
+                  projectId={id}
+                  sources={sources}
+                  folderId={folderId}
+                  folderName={folderName}
+                  folderAvatarPreset={activeFolder?.avatar_preset}
+                />
+              ),
+            },
+            {
+              key: "usage",
+              label: "Data & Usage",
+              content: (
+                <DataUsagePanel
+                  projectId={id}
+                  summary={summary}
+                  packets={packets}
+                />
+              ),
+            },
+          ]}
+        />
+      </aside>
     </div>
   );
 }

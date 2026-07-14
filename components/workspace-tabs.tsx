@@ -41,32 +41,36 @@ export function WorkspaceTabs({
   }, [focusToken, focusKey]);
 
   return (
-    <div>
-      <div
-        role="tablist"
-        className="mb-3 flex gap-1 rounded-lg border bg-muted/40 p-1"
-      >
-        {tabs.map((t) => (
-          <Button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={t.key === active}
-            size="sm"
-            variant={t.key === active ? "default" : "ghost"}
-            className="flex-1"
-            onClick={() => setActive(t.key)}
-          >
-            {t.label}
-          </Button>
-        ))}
+    <div className="flex flex-col lg:h-full lg:min-h-0">
+      <div className="p-3 lg:border-b">
+        <div
+          role="tablist"
+          className="flex gap-1 rounded-lg border bg-background p-1"
+        >
+          {tabs.map((t) => (
+            <Button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={t.key === active}
+              size="sm"
+              variant={t.key === active ? "default" : "ghost"}
+              className="flex-1"
+              onClick={() => setActive(t.key)}
+            >
+              {t.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      {tabs.map((t) => (
-        <div key={t.key} className={cn(t.key !== active && "hidden")}>
-          {t.content}
-        </div>
-      ))}
+      <div className="px-3 pb-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+        {tabs.map((t) => (
+          <div key={t.key} className={cn(t.key !== active && "hidden")}>
+            {t.content}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

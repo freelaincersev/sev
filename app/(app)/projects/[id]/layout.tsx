@@ -27,7 +27,7 @@ export default async function ProjectLayout({
         folders={folders}
         email={user.email ?? ""}
       />
-      <div className="flex flex-1 flex-col overflow-auto">{children}</div>
+      <div className="flex min-w-0 flex-1">{children}</div>
     </>
   );
 }

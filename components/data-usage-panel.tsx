@@ -16,7 +16,7 @@ export function DataUsagePanel({
   const { sources, chunks, packets, monthTokens, monthEvents } = summary;
 
   return (
-    <section className="rounded-lg border">
+    <section className="overflow-hidden rounded-lg border bg-card">
       <header className="border-b px-4 py-3">
         <h2 className="text-sm font-semibold">Data &amp; Usage</h2>
         <p className="text-xs text-muted-foreground">

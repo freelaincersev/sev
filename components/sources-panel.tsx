@@ -34,7 +34,7 @@ export function SourcesPanel({
   const count =
     sources.length === 1 ? "1 source" : `${sources.length} sources`;
   return (
-    <section className="rounded-lg border">
+    <section className="overflow-hidden rounded-lg border bg-card">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold">Sources</h2>
