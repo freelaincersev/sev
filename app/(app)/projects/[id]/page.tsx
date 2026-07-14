@@ -1,6 +1,5 @@
 import { AskPanel } from "@/components/ask-panel";
 import { DataUsagePanel } from "@/components/data-usage-panel";
-import { PacketPanel } from "@/components/packet-panel";
 import { SourcesPanel } from "@/components/sources-panel";
 import { WorkspaceTabs } from "@/components/workspace-tabs";
 import { listFolders } from "@/lib/data/folders";
@@ -38,7 +37,8 @@ export default async function ProjectPage({
           <AskPanel projectId={id} />
         </main>
 
-        {/* Right rail: sources, packets, and data/usage tucked into tabs. */}
+        {/* Right rail: sources and data/usage tucked into tabs. Packets are
+            created via the Export action on each Ask answer, not a tab. */}
         <aside className="min-w-0 lg:sticky lg:top-6 lg:self-start">
           <WorkspaceTabs
             focusKey="sources"
@@ -58,14 +58,15 @@ export default async function ProjectPage({
                 ),
               },
               {
-                key: "packets",
-                label: "Packets",
-                content: <PacketPanel projectId={id} packets={packets} />,
-              },
-              {
                 key: "usage",
                 label: "Data & Usage",
-                content: <DataUsagePanel projectId={id} summary={summary} />,
+                content: (
+                  <DataUsagePanel
+                    projectId={id}
+                    summary={summary}
+                    packets={packets}
+                  />
+                ),
               },
             ]}
           />

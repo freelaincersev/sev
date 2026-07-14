@@ -1,14 +1,17 @@
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { PacketListItem } from "@/lib/data/packets";
 import type { ProjectSummary } from "@/lib/data/usage";
 
 export function DataUsagePanel({
   projectId,
   summary,
+  packets: savedPackets = [],
 }: {
   projectId: string;
   summary: ProjectSummary;
+  packets?: PacketListItem[];
 }) {
   const { sources, chunks, packets, monthTokens, monthEvents } = summary;
 
@@ -50,6 +53,21 @@ export function DataUsagePanel({
           </a>
         </Button>
       </div>
+
+      {savedPackets.length > 0 ? (
+        <div className="border-t">
+          <p className="px-4 pt-3 text-xs font-medium text-muted-foreground">
+            Saved packets
+          </p>
+          <ul className="divide-y">
+            {savedPackets.map((p) => (
+              <li key={p.id} className="truncate px-4 py-2 text-sm">
+                {p.title}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </section>
   );
 }

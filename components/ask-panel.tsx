@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import { askQuestion } from "@/lib/actions/retrieval";
 import { saveAnswerToMemory } from "@/lib/actions/sources";
+import { AnswerExportDialog } from "@/components/answer-export-dialog";
 import {
   CHAT_MODELS,
   DEFAULT_CHAT_MODEL_KEY,
@@ -188,26 +189,29 @@ export function AskPanel({ projectId }: { projectId: string }) {
                 <Sources results={m.results} />
               ) : null}
               {m.query && m.results && m.results.length > 0 ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  disabled={m.saved || saving}
-                  onClick={() => onSave(i)}
-                >
-                  {m.saved ? (
-                    <>
-                      <BookmarkCheck className="size-4" />
-                      Saved to memory
-                    </>
-                  ) : (
-                    <>
-                      <Bookmark className="size-4" />
-                      {saving ? "Saving…" : "Save to memory"}
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    disabled={m.saved || saving}
+                    onClick={() => onSave(i)}
+                  >
+                    {m.saved ? (
+                      <>
+                        <BookmarkCheck className="size-4" />
+                        Saved to memory
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark className="size-4" />
+                        {saving ? "Saving…" : "Save to memory"}
+                      </>
+                    )}
+                  </Button>
+                  <AnswerExportDialog projectId={projectId} query={m.query} />
+                </div>
               ) : null}
             </div>
           ),
