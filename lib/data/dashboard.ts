@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 
-export type CrewFolder = {
+export type ProjectCard = {
   id: string;
-  name: string;
-  projectId: string;
-  projectTitle: string;
-  avatarPreset: string | null;
-  color: string | null;
+  title: string;
+  description: string | null;
   sourceCount: number;
+  folderCount: number;
 };
 
 export type DashboardOverview = {
@@ -17,7 +15,7 @@ export type DashboardOverview = {
   packets: number;
   monthTokens: number;
   monthPacketsCreated: number;
-  crew: CrewFolder[];
+  projectCards: ProjectCard[];
 };
 
 /** UTC start of the current calendar month, ISO string. */
@@ -28,27 +26,26 @@ function monthStartISO(): string {
   ).toISOString();
 }
 
-/** Shape of a folder row with its embedded source count + project title. */
-type FolderRow = {
+/** A project row with its embedded source + folder counts. */
+type ProjectRow = {
   id: string;
-  name: string;
-  project_id: string;
-  avatar_preset: string | null;
-  color: string | null;
+  title: string;
+  description: string | null;
   sources: { count: number }[] | null;
-  projects: { title: string } | { title: string }[] | null;
+  folders: { count: number }[] | null;
 };
 
 /**
  * Account-wide overview for the dashboard: stored knowledge, this month's
- * usage, and the user's folders ("crew") across every project. RLS scopes all
- * of this to the authenticated user.
+ * usage, and the user's projects with their size (sources + folders). Folders
+ * ("crew") are project-scoped, so they surface inside a project, not here. RLS
+ * scopes all of this to the authenticated user.
  */
 export async function getDashboardOverview(): Promise<DashboardOverview> {
   const supabase = await createClient();
   const since = monthStartISO();
 
-  const [projects, sources, chunks, packets, events, folders] =
+  const [projects, sources, chunks, packets, events, projectRows] =
     await Promise.all([
       supabase.from("projects").select("id", { count: "exact", head: true }),
       supabase.from("sources").select("id", { count: "exact", head: true }),
@@ -61,11 +58,9 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
         .select("event_type, tokens")
         .gte("created_at", since),
       supabase
-        .from("folders")
-        .select(
-          "id, name, project_id, avatar_preset, color, sources(count), projects(title)",
-        )
-        .order("created_at", { ascending: true }),
+        .from("projects")
+        .select("id, title, description, sources(count), folders(count)")
+        .order("created_at", { ascending: false }),
     ]);
 
   let monthTokens = 0;
@@ -75,20 +70,15 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
     if (e.event_type === "context_packet.created") monthPacketsCreated += 1;
   }
 
-  const crew: CrewFolder[] = ((folders.data ?? []) as unknown as FolderRow[]).map(
-    (f) => {
-      const project = Array.isArray(f.projects) ? f.projects[0] : f.projects;
-      return {
-        id: f.id,
-        name: f.name,
-        projectId: f.project_id,
-        projectTitle: project?.title ?? "Untitled",
-        avatarPreset: f.avatar_preset,
-        color: f.color,
-        sourceCount: f.sources?.[0]?.count ?? 0,
-      };
-    },
-  );
+  const projectCards: ProjectCard[] = (
+    (projectRows.data ?? []) as unknown as ProjectRow[]
+  ).map((p) => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    sourceCount: p.sources?.[0]?.count ?? 0,
+    folderCount: p.folders?.[0]?.count ?? 0,
+  }));
 
   return {
     projects: projects.count ?? 0,
@@ -97,6 +87,6 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
     packets: packets.count ?? 0,
     monthTokens,
     monthPacketsCreated,
-    crew,
+    projectCards,
   };
 }

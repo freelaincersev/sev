@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Trash2, Upload } from "lucide-react";
+import { ArrowRight, FolderClosed, Sparkles, Trash2, Upload } from "lucide-react";
 
 import { CreateProjectDialog } from "@/components/create-project-dialog";
-import { Mascot, resolveMascotPersona } from "@/components/mascot";
 import { Button } from "@/components/ui/button";
 import { deleteProject } from "@/lib/actions/projects";
 import { getDashboardOverview } from "@/lib/data/dashboard";
-import { listProjects } from "@/lib/data/projects";
 
 function StatTile({
   label,
@@ -67,10 +65,8 @@ function StatTile({
 }
 
 export default async function DashboardPage() {
-  const [overview, projects] = await Promise.all([
-    getDashboardOverview(),
-    listProjects(),
-  ]);
+  const overview = await getDashboardOverview();
+  const projects = overview.projectCards;
   const recent = projects[0];
 
   return (
@@ -106,7 +102,6 @@ export default async function DashboardPage() {
           label="Pulled this month"
           value={overview.monthPacketsCreated.toLocaleString()}
           hint="keep the loop going"
-          href={recent ? `/projects/${recent.id}?tab=usage` : undefined}
         />
         <StatTile
           label="Projects"
@@ -161,48 +156,8 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* Your crew — the character for each memory folder, across all projects. */}
-      {overview.crew.length > 0 ? (
-        <section className="mb-10">
-          <div className="mb-3">
-            <h2 className="text-lg font-semibold tracking-tight">Your crew</h2>
-            <p className="text-sm text-muted-foreground">
-              A character for each memory folder — open one to jump into its
-              context. Hungry when empty, satisfied once it holds sources.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {overview.crew.map((f) => (
-              <Link
-                key={f.id}
-                href={`/projects/${f.projectId}?folder=${f.id}`}
-                className="flex items-center gap-3 rounded-xl border bg-card p-3 transition hover:bg-accent/50"
-              >
-                <span
-                  className="inline-flex shrink-0 rounded-full"
-                  style={f.color ? { boxShadow: `0 0 0 1.5px ${f.color}` } : undefined}
-                >
-                  <Mascot
-                    persona={resolveMascotPersona(f.avatarPreset, f.id)}
-                    mood={f.sourceCount > 0 ? "happy" : "hungry"}
-                    size={40}
-                  />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{f.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {f.projectTitle} · {f.sourceCount} source
-                    {f.sourceCount === 1 ? "" : "s"}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Projects */}
+      {/* Projects — the top-level containers. A project's folders ("crew") live
+          inside it, not flattened here, so this scales as projects grow. */}
       <section id="projects" className="scroll-mt-6">
         <h2 className="mb-3 text-lg font-semibold tracking-tight">Projects</h2>
         {projects.length === 0 ? (
@@ -224,10 +179,21 @@ export default async function DashboardPage() {
                   <ArrowRight className="ml-1 inline size-3.5 -translate-x-1 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
                 </Link>
                 {project.description ? (
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {project.description}
                   </p>
                 ) : null}
+                <p className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>
+                    {project.sourceCount} source
+                    {project.sourceCount === 1 ? "" : "s"}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <FolderClosed className="size-3.5" />
+                    {project.folderCount} folder
+                    {project.folderCount === 1 ? "" : "s"}
+                  </span>
+                </p>
                 <form
                   action={deleteProject}
                   className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
