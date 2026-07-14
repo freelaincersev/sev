@@ -104,6 +104,12 @@ export function AskPanel({ projectId }: { projectId: string }) {
     const query = String(formData.get("query") ?? "").trim();
     if (!query) return;
     setError(null);
+    // Send prior turns so follow-ups ("summarize what I just listed") resolve.
+    // `messages` here is the conversation before this question is added.
+    formData.set(
+      "history",
+      JSON.stringify(messages.map((m) => ({ role: m.role, content: m.text }))),
+    );
     setMessages((m) => [...m, { role: "user", text: query }]);
     formRef.current?.reset();
     startTransition(async () => {
