@@ -64,7 +64,7 @@ export function SourceSummaryDialog({
         <DialogHeader>
           <DialogTitle className="pr-6">{source.title}</DialogTitle>
           <DialogDescription>
-            {source.type} · {source.chunk_count} chunk
+            {source.type.replace("_", " ")} · {source.chunk_count} chunk
             {source.chunk_count === 1 ? "" : "s"}
           </DialogDescription>
         </DialogHeader>

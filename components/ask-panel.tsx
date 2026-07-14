@@ -7,9 +7,11 @@ import {
   useState,
   useTransition,
 } from "react";
-import { Send } from "lucide-react";
+import { Bookmark, BookmarkCheck, Send } from "lucide-react";
+import { toast } from "sonner";
 
 import { askQuestion } from "@/lib/actions/retrieval";
+import { saveAnswerToMemory } from "@/lib/actions/sources";
 import {
   CHAT_MODELS,
   DEFAULT_CHAT_MODEL_KEY,
@@ -43,8 +45,10 @@ type Message =
   | {
       role: "assistant";
       text: string;
+      query?: string;
       model?: string;
       results?: RetrievedChunk[];
+      saved?: boolean;
     };
 
 function Sources({ results }: { results: RetrievedChunk[] }) {
@@ -84,6 +88,7 @@ function Sources({ results }: { results: RetrievedChunk[] }) {
 
 export function AskPanel({ projectId }: { projectId: string }) {
   const [pending, startTransition] = useTransition();
+  const [saving, startSaving] = useTransition();
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState<ChatModelKey>(DEFAULT_CHAT_MODEL_KEY);
   const [error, setError] = useState<string | null>(null);
@@ -111,10 +116,32 @@ export function AskPanel({ projectId }: { projectId: string }) {
         {
           role: "assistant",
           text: res.answer ?? "",
+          query: res.query,
           model: res.model,
           results: res.results,
         },
       ]);
+    });
+  }
+
+  function onSave(index: number) {
+    const m = messages[index];
+    if (m.role !== "assistant" || !m.query || m.saved) return;
+    startSaving(async () => {
+      const formData = new FormData();
+      formData.set("project_id", projectId);
+      formData.set("query", m.query ?? "");
+      formData.set("answer", m.text);
+      if (m.model) formData.set("model", m.model);
+      const res = await saveAnswerToMemory(formData);
+      if (res.ok) {
+        toast.success("Answer saved to memory.");
+        setMessages((msgs) =>
+          msgs.map((mm, j) => (j === index ? { ...mm, saved: true } : mm)),
+        );
+      } else {
+        toast.error(res.error ?? "Could not save the answer.");
+      }
     });
   }
 
@@ -159,6 +186,28 @@ export function AskPanel({ projectId }: { projectId: string }) {
               ) : null}
               {m.results && m.results.length > 0 ? (
                 <Sources results={m.results} />
+              ) : null}
+              {m.query && m.results && m.results.length > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={m.saved || saving}
+                  onClick={() => onSave(i)}
+                >
+                  {m.saved ? (
+                    <>
+                      <BookmarkCheck className="size-4" />
+                      Saved to memory
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="size-4" />
+                      {saving ? "Saving…" : "Save to memory"}
+                    </>
+                  )}
+                </Button>
               ) : null}
             </div>
           ),

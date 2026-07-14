@@ -62,7 +62,7 @@ export function SourcesPanel({
                   <StatusBadge status={s.status} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {s.type} · {s.chunk_count} chunk
+                  {s.type.replace("_", " ")} · {s.chunk_count} chunk
                   {s.chunk_count === 1 ? "" : "s"}
                   {s.status === "error" && s.error_message
                     ? ` · ${s.error_message}`
