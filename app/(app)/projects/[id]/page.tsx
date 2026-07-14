@@ -12,10 +12,10 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ folder?: string }>;
+  searchParams: Promise<{ folder?: string; tab?: string }>;
 }) {
   const { id } = await params;
-  const { folder } = await searchParams;
+  const { folder, tab } = await searchParams;
   const folderId = folder || undefined;
 
   const [sources, packets, summary, folders] = await Promise.all([
@@ -43,6 +43,7 @@ export default async function ProjectPage({
           <WorkspaceTabs
             focusKey="sources"
             focusToken={folderId}
+            defaultKey={tab === "usage" ? "usage" : undefined}
             tabs={[
               {
                 key: "sources",

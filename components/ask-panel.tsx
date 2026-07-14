@@ -3,11 +3,12 @@
 import {
   Fragment,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useTransition,
 } from "react";
-import { Bookmark, BookmarkCheck, Send } from "lucide-react";
+import { ArrowUp, Bookmark, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { askQuestion } from "@/lib/actions/retrieval";
@@ -21,13 +22,18 @@ import {
 import type { RetrievedChunk } from "@/lib/retrieval/search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+const SUGGESTIONS = [
+  "Summarize this project's memory",
+  "What are the main themes across my sources?",
+  "What did I save most recently?",
+];
 
 /** Render an answer, turning inline [n] markers into styled citation chips. */
 function AnswerText({ text }: { text: string }) {
   const parts = text.split(/(\[\d+\](?:\[\d+\])*)/g);
   return (
-    <p className="whitespace-pre-wrap text-sm leading-relaxed">
+    <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
       {parts.map((part, i) =>
         /^(\[\d+\])+$/.test(part) ? (
           <sup key={i} className="mx-0.5 font-medium text-primary">
@@ -54,7 +60,7 @@ type Message =
 
 function Sources({ results }: { results: RetrievedChunk[] }) {
   return (
-    <details className="rounded-md border bg-muted/30 px-3 py-2">
+    <details className="rounded-lg border bg-muted/30 px-3 py-2">
       <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
         Sources ({results.length})
       </summary>
@@ -92,7 +98,9 @@ export function AskPanel({ projectId }: { projectId: string }) {
   const [saving, startSaving] = useTransition();
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState<ChatModelKey>(DEFAULT_CHAT_MODEL_KEY);
+  const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -100,18 +108,29 @@ export function AskPanel({ projectId }: { projectId: string }) {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, pending]);
 
-  function onSubmit(formData: FormData) {
-    const query = String(formData.get("query") ?? "").trim();
-    if (!query) return;
+  // Grow the composer with its content, up to a cap (Claude/GPT-style).
+  useLayoutEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [value]);
+
+  function runQuery(raw: string) {
+    const query = raw.trim();
+    if (!query || pending) return;
     setError(null);
+    const formData = new FormData();
+    formData.set("project_id", projectId);
+    formData.set("query", query);
+    formData.set("model", model);
     // Send prior turns so follow-ups ("summarize what I just listed") resolve.
-    // `messages` here is the conversation before this question is added.
     formData.set(
       "history",
       JSON.stringify(messages.map((m) => ({ role: m.role, content: m.text }))),
     );
     setMessages((m) => [...m, { role: "user", text: query }]);
-    formRef.current?.reset();
+    setValue("");
     startTransition(async () => {
       const res = await askQuestion({}, formData);
       if (res.error) {
@@ -129,6 +148,13 @@ export function AskPanel({ projectId }: { projectId: string }) {
         },
       ]);
     });
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      runQuery(value);
+    }
   }
 
   function onSave(index: number) {
@@ -152,114 +178,157 @@ export function AskPanel({ projectId }: { projectId: string }) {
     });
   }
 
+  const empty = messages.length === 0 && !pending;
+
   return (
-    <section className="flex h-[calc(100dvh-13rem)] min-h-[26rem] flex-col rounded-lg border">
-      <header className="border-b px-4 py-3">
-        <h2 className="text-sm font-semibold">Ask</h2>
-        <p className="text-xs text-muted-foreground">
-          Get a citation-first answer grounded in this project&apos;s memory.
-        </p>
-      </header>
-
-      {/* Conversation (grows upward; input stays pinned at the bottom). */}
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && !pending ? (
-          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
-            Ask anything about this project&apos;s memory. Answers cite the
-            sources they rely on.
-          </div>
-        ) : null}
-
-        {messages.map((m, i) =>
-          m.role === "user" ? (
-            <div key={i} className="flex justify-end">
-              <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-primary px-4 py-2 text-sm text-primary-foreground">
-                {m.text}
+    <section className="flex h-[calc(100dvh-8rem)] min-h-[30rem] flex-col">
+      {/* Conversation (grows; composer stays pinned at the bottom). */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-1 py-6">
+          {empty ? (
+            <div className="flex h-full min-h-[24rem] flex-col items-center justify-center px-6 text-center">
+              <h2 className="text-xl font-semibold tracking-tight">
+                Ask your memory anything
+              </h2>
+              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                Answers pull only the relevant pieces from this project and cite
+                the sources they rely on — your full vault is never sent.
+              </p>
+              <div className="mt-6 flex flex-col items-stretch gap-2 sm:w-auto">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => runQuery(s)}
+                    className="rounded-full border bg-card px-4 py-2 text-sm text-foreground/80 transition hover:bg-accent/50"
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
-            <div key={i} className="space-y-2">
-              <AnswerText text={m.text} />
-              {m.model && m.results && m.results.length > 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  Sent to {m.model} · {m.results.length} snippet
-                  {m.results.length === 1 ? "" : "s"} from{" "}
-                  {new Set(m.results.map((r) => r.sourceId)).size} source
-                  {new Set(m.results.map((r) => r.sourceId)).size === 1
-                    ? ""
-                    : "s"}{" "}
-                  · full vault not sent
-                </p>
-              ) : null}
-              {m.results && m.results.length > 0 ? (
-                <Sources results={m.results} />
-              ) : null}
-              {m.query && m.results && m.results.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full"
-                    disabled={m.saved || saving}
-                    onClick={() => onSave(i)}
-                  >
-                    {m.saved ? (
-                      <>
-                        <BookmarkCheck className="size-4" />
-                        Saved to memory
-                      </>
-                    ) : (
-                      <>
-                        <Bookmark className="size-4" />
-                        {saving ? "Saving…" : "Save to memory"}
-                      </>
-                    )}
-                  </Button>
-                  <AnswerExportDialog projectId={projectId} query={m.query} />
+            <div className="space-y-8">
+              {messages.map((m, i) =>
+                m.role === "user" ? (
+                  <div key={i} className="flex justify-end">
+                    <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-muted px-4 py-2.5 text-[15px] leading-relaxed">
+                      {m.text}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={i} className="space-y-3">
+                    <AnswerText text={m.text} />
+                    {m.model && m.results && m.results.length > 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Sent to {m.model} · {m.results.length} snippet
+                        {m.results.length === 1 ? "" : "s"} from{" "}
+                        {new Set(m.results.map((r) => r.sourceId)).size} source
+                        {new Set(m.results.map((r) => r.sourceId)).size === 1
+                          ? ""
+                          : "s"}{" "}
+                        · full vault not sent
+                      </p>
+                    ) : null}
+                    {m.results && m.results.length > 0 ? (
+                      <Sources results={m.results} />
+                    ) : null}
+                    {m.query && m.results && m.results.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          disabled={m.saved || saving}
+                          onClick={() => onSave(i)}
+                        >
+                          {m.saved ? (
+                            <>
+                              <BookmarkCheck className="size-4" />
+                              Saved to memory
+                            </>
+                          ) : (
+                            <>
+                              <Bookmark className="size-4" />
+                              {saving ? "Saving…" : "Save to memory"}
+                            </>
+                          )}
+                        </Button>
+                        <AnswerExportDialog
+                          projectId={projectId}
+                          query={m.query}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ),
+              )}
+
+              {pending ? (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
+                  <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
+                  <span className="size-1.5 animate-bounce rounded-full bg-current" />
                 </div>
               ) : null}
+              {error ? (
+                <p className="text-sm text-destructive">{error}</p>
+              ) : null}
+              <div ref={endRef} />
             </div>
-          ),
-        )}
-
-        {pending ? (
-          <p className="text-sm text-muted-foreground">Thinking…</p>
-        ) : null}
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <div ref={endRef} />
+          )}
+        </div>
       </div>
 
-      <form
-        ref={formRef}
-        action={onSubmit}
-        className="flex gap-2 border-t p-3"
-      >
-        <input type="hidden" name="project_id" value={projectId} />
-        <select
-          name="model"
-          value={model}
-          onChange={(e) => setModel(e.target.value as ChatModelKey)}
-          aria-label="AI model"
-          className="shrink-0 rounded-lg border bg-background px-2 text-sm outline-none focus-visible:border-ring"
+      {/* Composer — a single rounded field that grows with the text. */}
+      <div className="pb-1 pt-2">
+        <form
+          ref={formRef}
+          action={(fd) => runQuery(String(fd.get("query") ?? ""))}
+          className="mx-auto w-full max-w-3xl"
         >
-          {CHAT_MODELS.map((m) => (
-            <option key={m.key} value={m.key}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-        <Input
-          name="query"
-          placeholder="Ask a question about this project…"
-          autoComplete="off"
-          required
-        />
-        <Button type="submit" disabled={pending}>
-          <Send className="size-4" />
-          {pending ? "…" : "Ask"}
-        </Button>
-      </form>
+          <div className="rounded-[1.5rem] border bg-background shadow-sm transition-colors focus-within:border-ring">
+            <textarea
+              ref={taRef}
+              name="query"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={onKeyDown}
+              rows={1}
+              placeholder="Ask anything about this project's memory…"
+              className="block max-h-[200px] w-full resize-none bg-transparent px-4 pb-2 pt-3.5 text-[15px] outline-none placeholder:text-muted-foreground"
+            />
+            <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5 pt-1">
+              <select
+                name="model"
+                value={model}
+                onChange={(e) => setModel(e.target.value as ChatModelKey)}
+                aria-label="AI model"
+                className="rounded-lg bg-transparent px-1.5 py-1 text-xs text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:bg-muted"
+              >
+                {CHAT_MODELS.map((cm) => (
+                  <option key={cm.key} value={cm.key}>
+                    {cm.label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="submit"
+                size="icon"
+                className="size-8 rounded-full"
+                disabled={pending || !value.trim()}
+                aria-label="Ask"
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+            </div>
+          </div>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            Answers cite their sources · your full vault is never sent
+          </p>
+        </form>
+      </div>
     </section>
   );
 }

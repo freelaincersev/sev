@@ -19,12 +19,18 @@ export function WorkspaceTabs({
   tabs,
   focusKey,
   focusToken,
+  defaultKey,
 }: {
   tabs: WorkspaceTab[];
   focusKey?: string;
   focusToken?: string;
+  defaultKey?: string;
 }) {
-  const [active, setActive] = useState(tabs[0]?.key);
+  const [active, setActive] = useState(
+    defaultKey && tabs.some((t) => t.key === defaultKey)
+      ? defaultKey
+      : tabs[0]?.key,
+  );
 
   const prevToken = useRef(focusToken);
   useEffect(() => {

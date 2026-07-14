@@ -54,7 +54,7 @@ export function Mascot({
       height={size}
       alt=""
       aria-hidden
-      className={cn("select-none object-contain", className)}
+      className={cn("select-none object-contain [image-rendering:pixelated]", className)}
     />
   );
 }
