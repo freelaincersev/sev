@@ -43,7 +43,7 @@ export default async function LandingPage() {
           {/* Fluid size (clamp) + nowrap so it always stays on one line,
               shrinking on narrow screens instead of wrapping. */}
           <h1 className="whitespace-nowrap text-[clamp(1.3rem,5.6vw,4.5rem)] font-semibold tracking-[-0.03em]">
-            Your AI memory, owned by you.
+            Own your AI memory.
           </h1>
           <p lang="ko" className="text-base text-muted-foreground">
             당신이 소유하는 AI 기억.
@@ -63,7 +63,7 @@ export default async function LandingPage() {
             Save your files, notes, and docs to Sev once — then no matter which
             AI you use, you never repeat yourself again.
           </p>
-          <p lang="ko" className="text-lg font-medium text-foreground">
+          <p lang="ko" className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             아직도 AI에게 매번 설명하세요?
           </p>
           <p lang="ko" className="text-lg text-muted-foreground">
