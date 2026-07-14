@@ -29,6 +29,12 @@ export async function createPacket(
   const goal = String(formData.get("goal") ?? "").trim();
   const targetLLM = (String(formData.get("target_llm") ?? "generic") ||
     "generic") as TargetLLM;
+  // Optional: only include these sources (from the suggestion checklist). Empty
+  // = include everything relevant (backward compatible).
+  const rawIds = String(formData.get("source_ids") ?? "").trim();
+  const selectedIds = rawIds
+    ? new Set(rawIds.split(",").map((s) => s.trim()).filter(Boolean))
+    : null;
   if (!projectId) return { error: "Missing project." };
   if (!goal) return { error: "Describe what you want the packet to help with." };
 
@@ -42,13 +48,18 @@ export async function createPacket(
   if (capError) return { error: capError, goal };
 
   try {
-    const { chunks, queryTokens } = await searchChunks(supabase, {
+    const { chunks: allChunks, queryTokens } = await searchChunks(supabase, {
       projectId,
       query: goal,
     });
+    const chunks = selectedIds
+      ? allChunks.filter((c) => selectedIds.has(c.sourceId))
+      : allChunks;
     if (chunks.length === 0) {
       return {
-        error: "No matching memory found. Add sources or refine the goal.",
+        error: selectedIds
+          ? "Select at least one source to include."
+          : "No matching memory found. Add sources or refine the goal.",
         goal,
       };
     }
@@ -114,6 +125,59 @@ export async function createPacket(
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to build packet.";
+    return { error: msg, goal };
+  }
+}
+
+export type SuggestedSource = {
+  sourceId: string;
+  sourceTitle: string;
+  snippetCount: number;
+};
+
+export type SuggestState = {
+  ok?: boolean;
+  error?: string;
+  goal?: string;
+  suggestions?: SuggestedSource[];
+};
+
+/**
+ * "Sev speaks first": for a goal, retrieve the relevant memory and return the
+ * sources it would pull, grouped, so the user can confirm/adjust which context
+ * to include before a packet is built. No packet is created or logged here.
+ */
+export async function suggestPacketContext(
+  _prev: SuggestState,
+  formData: FormData,
+): Promise<SuggestState> {
+  const projectId = String(formData.get("project_id") ?? "");
+  const goal = String(formData.get("goal") ?? "").trim();
+  if (!projectId) return { error: "Missing project." };
+  if (!goal) return { error: "Describe what you're building context for." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in.", goal };
+
+  try {
+    const { chunks } = await searchChunks(supabase, { projectId, query: goal });
+    const bySource = new Map<string, SuggestedSource>();
+    for (const c of chunks) {
+      const cur = bySource.get(c.sourceId);
+      if (cur) cur.snippetCount += 1;
+      else
+        bySource.set(c.sourceId, {
+          sourceId: c.sourceId,
+          sourceTitle: c.sourceTitle,
+          snippetCount: 1,
+        });
+    }
+    return { ok: true, goal, suggestions: [...bySource.values()] };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed to find context.";
     return { error: msg, goal };
   }
 }

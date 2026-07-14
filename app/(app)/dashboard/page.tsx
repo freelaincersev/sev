@@ -28,6 +28,7 @@ export default async function DashboardPage() {
               <ContinueWorking projects={projects} />
               <RecentPackets
                 packets={packets}
+                projects={pickerProjects}
                 viewAllHref={`/projects/${projects[0].id}?tab=usage`}
               />
               <RecentActivity activity={activity} />
