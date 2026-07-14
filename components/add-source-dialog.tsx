@@ -119,6 +119,9 @@ export function AddSourceDialog({
                 rows={8}
                 placeholder="Paste notes, docs, or Markdown here…"
                 required
+                // Cap growth (base Textarea uses field-sizing-content) so long
+                // pastes scroll inside the box instead of stretching the dialog.
+                className="max-h-[40vh] resize-none overflow-y-auto"
               />
             </div>
           ) : mode === "file" ? (
