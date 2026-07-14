@@ -497,6 +497,7 @@ export type Database = {
           error_message: string | null
           folder_id: string | null
           id: string
+          intent: string | null
           metadata: Json
           project_id: string
           source_url: string | null
@@ -518,6 +519,7 @@ export type Database = {
           error_message?: string | null
           folder_id?: string | null
           id?: string
+          intent?: string | null
           metadata?: Json
           project_id: string
           source_url?: string | null
@@ -539,6 +541,7 @@ export type Database = {
           error_message?: string | null
           folder_id?: string | null
           id?: string
+          intent?: string | null
           metadata?: Json
           project_id?: string
           source_url?: string | null

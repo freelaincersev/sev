@@ -160,6 +160,24 @@ export function AddToMemoryDialog({ projects }: { projects: DialogProject[] }) {
             </div>
           )}
 
+          <div className="space-y-1.5">
+            <Label htmlFor="atm-intent">
+              Why does this matter?{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </Label>
+            <Input
+              id="atm-intent"
+              name="intent"
+              placeholder="e.g. Core market for the Samsung cooling pitch"
+            />
+            <p className="text-xs text-muted-foreground">
+              One line of intent — it sticks to this memory and sharpens future
+              retrieval.
+            </p>
+          </div>
+
           <DialogFooter>
             <Button type="submit" disabled={pending || !projectId}>
               {pending ? "Saving…" : "Save to memory"}

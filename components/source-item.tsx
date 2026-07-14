@@ -88,6 +88,12 @@ export function SourceItem({
               ? ` · ${source.error_message}`
               : ""}
           </p>
+          {source.intent ? (
+            <p className="pl-[1.125rem] text-xs text-foreground/70">
+              <span className="text-muted-foreground">Why it matters: </span>
+              {source.intent}
+            </p>
+          ) : null}
         </div>
         {source.storage_path ? (
           <Button

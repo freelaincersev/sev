@@ -12,6 +12,7 @@ export type Source = {
   error_message: string | null;
   summary: string | null;
   summary_model: string | null;
+  intent: string | null;
   created_at: string;
 };
 

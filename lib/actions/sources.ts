@@ -34,6 +34,9 @@ export async function addSource(
   const projectId = String(formData.get("project_id") ?? "");
   if (!projectId) return { error: "Missing project." };
   const folderId = String(formData.get("folder_id") ?? "").trim() || null;
+  // One line of user intent ("why this matters for the project"): stored, and
+  // prepended to the embedded content so it's a retrieval signal immediately.
+  const intent = String(formData.get("intent") ?? "").trim() || null;
 
   const supabase = await createClient();
   const {
@@ -102,7 +105,14 @@ export async function addSource(
     return {
       error: `Source is too large (${content.length} chars, max ${MAX_CHARS}).`,
     };
-  if (!title) title = "Untitled";
+  if (!title) {
+    const firstLine = content.split("\n").map((l) => l.trim()).find(Boolean);
+    title = firstLine
+      ? firstLine.length > 80
+        ? `${firstLine.slice(0, 77)}…`
+        : firstLine
+      : "Untitled";
+  }
 
   return ingestSource({
     supabase,
@@ -112,7 +122,10 @@ export async function addSource(
     type,
     title,
     sourceUrl,
-    content,
+    // Prepend intent so it's embedded with the content; the archived original
+    // (originalBlob) stays the raw material.
+    content: intent ? `> Why this matters: ${intent}\n\n${content}` : content,
+    intent,
     originalBlob,
     originalFilename,
   });
@@ -129,6 +142,7 @@ type IngestInput = {
   content: string;
   originalBlob: Blob;
   originalFilename: string;
+  intent?: string | null;
 };
 
 /**
@@ -146,6 +160,7 @@ async function ingestSource({
   content,
   originalBlob,
   originalFilename,
+  intent = null,
 }: IngestInput): Promise<AddSourceState> {
   // 1) Create the source row first (status = uploaded) so we have a source_id
   //    for the storage path and its progress is observable.
@@ -158,6 +173,7 @@ async function ingestSource({
       type,
       title,
       source_url: sourceUrl,
+      intent,
       status: "uploaded",
     })
     .select("id")
