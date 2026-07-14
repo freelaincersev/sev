@@ -5,7 +5,8 @@ import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { DashboardAsk } from "@/components/dashboard-ask";
 import { DashboardCapture } from "@/components/dashboard-capture";
 import { RecentPackets } from "@/components/recent-packets";
-import { getDashboardOverview } from "@/lib/data/dashboard";
+import { WeeklyMomentum } from "@/components/weekly-momentum";
+import { getDashboardOverview, getWeeklyActivity } from "@/lib/data/dashboard";
 import { listRecentPackets } from "@/lib/data/packets";
 
 function StatTile({
@@ -67,12 +68,18 @@ function StatTile({
 }
 
 export default async function DashboardPage() {
-  const [overview, recentPackets] = await Promise.all([
+  const [overview, recentPackets, weekly] = await Promise.all([
     getDashboardOverview(),
     listRecentPackets(),
+    getWeeklyActivity(),
   ]);
   const projects = overview.projectCards;
   const recent = projects[0];
+  const weeklyTotal =
+    weekly.sourcesAdded +
+    weekly.packetsCreated +
+    weekly.packetsReused +
+    weekly.answers;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10">
@@ -113,11 +120,18 @@ export default async function DashboardPage() {
 
       {/* Reuse what you've pulled — the North Star made actionable. */}
       {recentPackets.length > 0 ? (
-        <section className="mb-10">
+        <section className="mb-8">
           <h2 className="mb-3 text-sm font-medium text-muted-foreground">
             Reuse a packet
           </h2>
           <RecentPackets packets={recentPackets} />
+        </section>
+      ) : null}
+
+      {/* This week's momentum — shown only when the memory actually moved. */}
+      {weeklyTotal > 0 ? (
+        <section className="mb-8">
+          <WeeklyMomentum activity={weekly} />
         </section>
       ) : null}
 
