@@ -8,6 +8,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUp, Bookmark, BookmarkCheck, Folder } from "lucide-react";
 import { toast } from "sonner";
 
@@ -97,10 +98,12 @@ export function AskPanel({
   projectId,
   folderId,
   folderName,
+  initialQuery,
 }: {
   projectId: string;
   folderId?: string;
   folderName?: string;
+  initialQuery?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [saving, startSaving] = useTransition();
@@ -111,6 +114,10 @@ export function AskPanel({
   const taRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const didInitialAsk = useRef(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -166,6 +173,19 @@ export function AskPanel({
       runQuery(value);
     }
   }
+
+  // Auto-run a question handed off from the dashboard (?q=), once, then drop the
+  // param so a refresh doesn't re-ask.
+  useEffect(() => {
+    if (didInitialAsk.current || !initialQuery?.trim()) return;
+    didInitialAsk.current = true;
+    runQuery(initialQuery);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("q");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
 
   function onSave(index: number) {
     const m = messages[index];

@@ -12,10 +12,10 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ folder?: string; tab?: string }>;
+  searchParams: Promise<{ folder?: string; tab?: string; q?: string }>;
 }) {
   const { id } = await params;
-  const { folder, tab } = await searchParams;
+  const { folder, tab, q } = await searchParams;
   const folderId = folder || undefined;
 
   const [sources, packets, summary, folders] = await Promise.all([
@@ -34,7 +34,12 @@ export default async function ProjectPage({
       {/* Main: keep the workspace focused on asking. */}
       <main className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
         <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 lg:px-6">
-          <AskPanel projectId={id} folderId={folderId} folderName={folderName} />
+          <AskPanel
+            projectId={id}
+            folderId={folderId}
+            folderName={folderName}
+            initialQuery={q}
+          />
         </div>
       </main>
 
