@@ -2,6 +2,7 @@ import { Download, Trash2 } from "lucide-react";
 
 import { AddSourceDialog } from "@/components/add-source-dialog";
 import { FeedMeEmpty } from "@/components/feed-me-empty";
+import { SourceSummaryDialog } from "@/components/source-summary-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteSource } from "@/lib/actions/sources";
@@ -57,7 +58,7 @@ export function SourcesPanel({
             <li key={s.id} className="flex items-center gap-3 px-4 py-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-medium">{s.title}</span>
+                  <SourceSummaryDialog source={s} projectId={projectId} />
                   <StatusBadge status={s.status} />
                 </div>
                 <p className="text-xs text-muted-foreground">

@@ -488,6 +488,9 @@ export type Database = {
           source_url: string | null
           status: string
           storage_path: string | null
+          summary: string | null
+          summary_created_at: string | null
+          summary_model: string | null
           title: string
           type: string
           updated_at: string
@@ -504,6 +507,9 @@ export type Database = {
           source_url?: string | null
           status?: string
           storage_path?: string | null
+          summary?: string | null
+          summary_created_at?: string | null
+          summary_model?: string | null
           title: string
           type: string
           updated_at?: string
@@ -520,6 +526,9 @@ export type Database = {
           source_url?: string | null
           status?: string
           storage_path?: string | null
+          summary?: string | null
+          summary_created_at?: string | null
+          summary_model?: string | null
           title?: string
           type?: string
           updated_at?: string

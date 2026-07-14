@@ -7,6 +7,7 @@ import { chunkMarkdown } from "@/lib/ingest/chunk";
 import { embedTexts, EMBEDDING_MODEL, toVectorLiteral } from "@/lib/ingest/embed";
 import { fetchUrlAsText } from "@/lib/ingest/fetch-url";
 import { extractPdfText } from "@/lib/ingest/pdf";
+import { generateSummary } from "@/lib/retrieval/summarize";
 import { checkLimit } from "@/lib/usage/limits";
 import { createClient } from "@/lib/supabase/server";
 
@@ -210,6 +211,82 @@ export async function addSource(
 
   revalidatePath(`/projects/${projectId}`);
   return { ok: true, title };
+}
+
+export type SummarizeState = { summary?: string; model?: string; error?: string };
+
+/**
+ * A-3: one-time summary of a source. Generated on first request (GPT-4o mini),
+ * stored on the row, and returned from cache afterwards. RLS scopes the source
+ * lookup to the owner.
+ */
+export async function summarizeSource(
+  formData: FormData,
+): Promise<SummarizeState> {
+  const id = String(formData.get("id") ?? "");
+  const projectId = String(formData.get("project_id") ?? "");
+  if (!id || !projectId) return { error: "Missing source." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const { data: source } = await supabase
+    .from("sources")
+    .select("id, title, status, summary, summary_model")
+    .eq("id", id)
+    .eq("project_id", projectId)
+    .maybeSingle();
+  if (!source) return { error: "Source not found." };
+  if (source.summary) {
+    return { summary: source.summary, model: source.summary_model ?? undefined };
+  }
+  if (source.status !== "ready") {
+    return { error: "Source is still processing — try again once it's ready." };
+  }
+
+  // Token cap applies before any LLM spend, same as Ask.
+  const capError = await checkLimit(supabase, user.id, "ask");
+  if (capError) return { error: capError };
+
+  // The stored memory (chunks in order) IS the document text.
+  const { data: chunks, error: chunkErr } = await supabase
+    .from("chunks")
+    .select("content, chunk_index")
+    .eq("source_id", id)
+    .order("chunk_index", { ascending: true });
+  if (chunkErr) return { error: chunkErr.message };
+  const content = (chunks ?? []).map((c) => c.content).join("\n\n");
+  if (!content) return { error: "This source has no indexed content." };
+
+  let summary: Awaited<ReturnType<typeof generateSummary>>;
+  try {
+    summary = await generateSummary(source.title, content);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Summarization failed." };
+  }
+
+  await supabase
+    .from("sources")
+    .update({
+      summary: summary.text,
+      summary_model: summary.model,
+      summary_created_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  await supabase.from("usage_events").insert({
+    user_id: user.id,
+    project_id: projectId,
+    event_type: "generation",
+    tokens: summary.tokens,
+    metadata: { kind: "summary", source_id: id, model: summary.model },
+  });
+
+  revalidatePath(`/projects/${projectId}`);
+  return { summary: summary.text, model: summary.model };
 }
 
 export async function deleteSource(formData: FormData) {

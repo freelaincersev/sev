@@ -10,6 +10,8 @@ export type Source = {
   status: string;
   storage_path: string | null;
   error_message: string | null;
+  summary: string | null;
+  summary_model: string | null;
   created_at: string;
 };
 
