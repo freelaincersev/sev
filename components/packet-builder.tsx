@@ -140,7 +140,7 @@ export function PacketBuilder({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       {/* Goal + project (typed-goal mode) */}
       {goalEditable ? (
         <div className="space-y-2">
@@ -222,7 +222,7 @@ export function PacketBuilder({
                         type="checkbox"
                         checked={on}
                         onChange={() => toggle(s.sourceId)}
-                        className="size-4 accent-foreground"
+                        className="size-4 shrink-0 accent-foreground"
                       />
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">
                         {s.sourceTitle}
