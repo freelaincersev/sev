@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { ProjectSidebar } from "@/components/project-sidebar";
+import { MobileNav } from "@/components/mobile-nav";
+import { ProjectSidebar, ProjectSidebarBody } from "@/components/project-sidebar";
 import { listFolders } from "@/lib/data/folders";
 import { getProject } from "@/lib/data/projects";
 import { requireUser } from "@/lib/supabase/auth";
@@ -27,7 +28,16 @@ export default async function ProjectLayout({
         folders={folders}
         email={user.email ?? ""}
       />
-      <div className="flex min-w-0 flex-1">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <MobileNav title={project.title}>
+          <ProjectSidebarBody
+            project={project}
+            folders={folders}
+            email={user.email ?? ""}
+          />
+        </MobileNav>
+        <div className="flex min-w-0 flex-1">{children}</div>
+      </div>
     </>
   );
 }

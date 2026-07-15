@@ -12,7 +12,20 @@ import type { Project } from "@/lib/data/projects";
  * The right-hand Sources tab stays "the material behind this answer" — this
  * side is where you browse the project and its folder tree.
  */
-export function ProjectSidebar({
+export function ProjectSidebar(props: {
+  project: Project;
+  folders: FolderWithCount[];
+  email: string;
+}) {
+  return (
+    <aside className="hidden w-64 shrink-0 border-r bg-muted/30 lg:block">
+      <ProjectSidebarBody {...props} />
+    </aside>
+  );
+}
+
+/** Sidebar contents, shared by the desktop rail and the mobile drawer. */
+export function ProjectSidebarBody({
   project,
   folders,
   email,
@@ -22,7 +35,7 @@ export function ProjectSidebar({
   email: string;
 }) {
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-muted/30">
+    <div className="flex h-full flex-col">
       <div className="border-b p-4">
         <Link
           href="/dashboard"
@@ -54,6 +67,6 @@ export function ProjectSidebar({
         </p>
         <SignOutButton />
       </div>
-    </aside>
+    </div>
   );
 }

@@ -217,7 +217,7 @@ export function AskPanel({
   const empty = messages.length === 0 && !pending;
 
   return (
-    <section className="flex h-[calc(100dvh-8rem)] min-h-[30rem] flex-col lg:h-full lg:min-h-0">
+    <section className="flex min-h-[30rem] flex-col lg:h-full lg:min-h-0">
       {folderName ? (
         <div className="flex items-center justify-center gap-1.5 border-b bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
           <Folder className="size-3.5 shrink-0" />

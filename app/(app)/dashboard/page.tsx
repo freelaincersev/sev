@@ -23,8 +23,8 @@ export default async function DashboardPage() {
             <AskMemory projects={pickerProjects} />
           </div>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-3">
-            <div className="space-y-10 lg:col-span-2">
+          <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="min-w-0 space-y-10 lg:col-span-2">
               <ContinueWorking projects={projects} />
               <RecentPackets
                 packets={packets}
@@ -33,7 +33,7 @@ export default async function DashboardPage() {
               />
               <RecentActivity activity={activity} />
             </div>
-            <aside className="lg:col-span-1">
+            <aside className="min-w-0 lg:col-span-1">
               <MemoryInsights data={insights} />
             </aside>
           </div>

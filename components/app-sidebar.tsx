@@ -5,7 +5,17 @@ import { SignOutButton } from "@/components/sign-out-button";
 
 export type SidebarProject = { id: string; title: string };
 
-export function AppSidebar({
+/** Desktop-only left rail; hidden below lg (the mobile drawer reuses the body). */
+export function AppSidebar(props: { email: string; projects: SidebarProject[] }) {
+  return (
+    <aside className="hidden w-60 shrink-0 border-r bg-muted/30 lg:block">
+      <AppSidebarBody {...props} />
+    </aside>
+  );
+}
+
+/** Sidebar contents, shared by the desktop rail and the mobile drawer. */
+export function AppSidebarBody({
   email,
   projects,
 }: {
@@ -13,7 +23,7 @@ export function AppSidebar({
   projects: SidebarProject[];
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r bg-muted/30 lg:flex">
+    <div className="flex h-full flex-col">
       <div className="p-4">
         <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
           Sev
@@ -51,6 +61,6 @@ export function AppSidebar({
         </p>
         <SignOutButton />
       </div>
-    </aside>
+    </div>
   );
 }

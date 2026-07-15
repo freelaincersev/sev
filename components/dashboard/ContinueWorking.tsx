@@ -32,7 +32,7 @@ export function ContinueWorking({
       <h2 className="mb-3 text-lg font-semibold tracking-tight">
         Continue working
       </h2>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {top.map((p, i) => (
           <ProjectCard key={p.id} project={p} highlight={i === 0} />
         ))}
