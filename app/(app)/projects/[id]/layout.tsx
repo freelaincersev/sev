@@ -4,6 +4,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { ProjectSidebar, ProjectSidebarBody } from "@/components/project-sidebar";
 import { listFolders } from "@/lib/data/folders";
 import { getProject } from "@/lib/data/projects";
+import { countSources } from "@/lib/data/sources";
 import { requireUser } from "@/lib/supabase/auth";
 
 export default async function ProjectLayout({
@@ -15,9 +16,10 @@ export default async function ProjectLayout({
 }) {
   const { id } = await params;
   const user = await requireUser();
-  const [project, folders] = await Promise.all([
+  const [project, folders, totalSources] = await Promise.all([
     getProject(id),
     listFolders(id),
+    countSources(id),
   ]);
   if (!project) notFound();
 
@@ -26,6 +28,7 @@ export default async function ProjectLayout({
       <ProjectSidebar
         project={project}
         folders={folders}
+        totalSources={totalSources}
         email={user.email ?? ""}
       />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -33,6 +36,7 @@ export default async function ProjectLayout({
           <ProjectSidebarBody
             project={project}
             folders={folders}
+            totalSources={totalSources}
             email={user.email ?? ""}
           />
         </MobileNav>

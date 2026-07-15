@@ -7,12 +7,14 @@ import type { SourceWithCount } from "@/lib/data/sources";
 export function SourcesPanel({
   projectId,
   sources,
+  folders,
   folderId,
   folderName,
   folderAvatarPreset,
 }: {
   projectId: string;
   sources: SourceWithCount[];
+  folders: { id: string; name: string }[];
   folderId?: string;
   folderName?: string;
   folderAvatarPreset?: string | null;
@@ -42,7 +44,12 @@ export function SourcesPanel({
         ) : (
           <ul className="divide-y">
             {sources.map((s) => (
-              <SourceItem key={s.id} source={s} projectId={projectId} />
+              <SourceItem
+                key={s.id}
+                source={s}
+                projectId={projectId}
+                folders={folders}
+              />
             ))}
           </ul>
         )}

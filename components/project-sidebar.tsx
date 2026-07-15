@@ -15,6 +15,7 @@ import type { Project } from "@/lib/data/projects";
 export function ProjectSidebar(props: {
   project: Project;
   folders: FolderWithCount[];
+  totalSources: number;
   email: string;
 }) {
   return (
@@ -28,10 +29,12 @@ export function ProjectSidebar(props: {
 export function ProjectSidebarBody({
   project,
   folders,
+  totalSources,
   email,
 }: {
   project: Project;
   folders: FolderWithCount[];
+  totalSources: number;
   email: string;
 }) {
   return (
@@ -55,7 +58,11 @@ export function ProjectSidebarBody({
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
-        <FolderTree projectId={project.id} folders={folders} />
+        <FolderTree
+          projectId={project.id}
+          folders={folders}
+          totalSources={totalSources}
+        />
         <div className="mt-1">
           <FolderDialog projectId={project.id} />
         </div>

@@ -45,3 +45,17 @@ export async function listSources(
     return { ...rest, chunk_count: chunks?.[0]?.count ?? 0 };
   });
 }
+
+/**
+ * Total number of sources in a project (including those at the project root,
+ * i.e. filed in no folder). RLS scopes this to the authenticated user.
+ */
+export async function countSources(projectId: string): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("sources")
+    .select("*", { count: "exact", head: true })
+    .eq("project_id", projectId);
+  if (error) throw error;
+  return count ?? 0;
+}

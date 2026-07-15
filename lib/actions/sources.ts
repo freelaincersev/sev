@@ -438,3 +438,74 @@ export async function deleteSource(formData: FormData) {
 
   revalidatePath(`/projects/${projectId}`);
 }
+
+export type SourceChunk = {
+  id: string;
+  content: string;
+  headingPath: string | null;
+  page: number | null;
+  index: number;
+};
+
+/**
+ * Fetch a source's chunks (the retrieval units) in order, so the UI can show
+ * exactly what Sev indexed — not just the AI summary. RLS scopes to the owner.
+ * Called lazily from the client (chunk text can be large).
+ */
+export async function getSourceChunks(
+  formData: FormData,
+): Promise<{ chunks?: SourceChunk[]; error?: string }> {
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Missing source." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("chunks")
+    .select("id, content, heading_path, page, chunk_index")
+    .eq("source_id", id)
+    .order("chunk_index", { ascending: true });
+  if (error) return { error: error.message };
+
+  return {
+    chunks: (data ?? []).map((c) => ({
+      id: c.id,
+      content: c.content,
+      headingPath: c.heading_path,
+      page: c.page,
+      index: c.chunk_index,
+    })),
+  };
+}
+
+/**
+ * Move a source to a different folder (or to the project root when folder_id is
+ * empty). RLS scopes the update to the owner; we also verify the target folder
+ * belongs to this project so a source's folder can't drift to another project.
+ */
+export async function moveSource(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const projectId = String(formData.get("project_id") ?? "");
+  const folderId = String(formData.get("folder_id") ?? "").trim() || null;
+  if (!id || !projectId) return;
+
+  const supabase = await createClient();
+
+  if (folderId) {
+    const { data: folder } = await supabase
+      .from("folders")
+      .select("id")
+      .eq("id", folderId)
+      .eq("project_id", projectId)
+      .maybeSingle();
+    if (!folder) return;
+  }
+
+  const { error } = await supabase
+    .from("sources")
+    .update({ folder_id: folderId })
+    .eq("id", id)
+    .eq("project_id", projectId);
+  if (error) throw error;
+
+  revalidatePath(`/projects/${projectId}`);
+}

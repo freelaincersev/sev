@@ -65,6 +65,7 @@ export default async function ProjectPage({
                 <SourcesPanel
                   projectId={id}
                   sources={sources}
+                  folders={folders.map((f) => ({ id: f.id, name: f.name }))}
                   folderId={folderId}
                   folderName={folderName}
                   folderAvatarPreset={activeFolder?.avatar_preset}

@@ -53,9 +53,11 @@ function ExpandToggle({
 export function FolderTree({
   projectId,
   folders,
+  totalSources,
 }: {
   projectId: string;
   folders: FolderWithCount[];
+  totalSources: number;
 }) {
   const pathname = usePathname();
   const active = useSearchParams().get("folder");
@@ -167,7 +169,10 @@ export function FolderTree({
           className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-2"
         >
           <Layers className="size-4 shrink-0" />
-          <span className="flex-1 truncate">All sources</span>
+          <span className="min-w-0 flex-1 truncate">All sources</span>
+          <span className="shrink-0 text-xs text-muted-foreground">
+            {totalSources}
+          </span>
         </Link>
       </div>
       {rootOpen ? renderFolders(null, 0) : null}
