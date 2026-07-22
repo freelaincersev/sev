@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sev": {
+      "command": "node",
+      "args": ["mcp/sev-mcp.mjs"]
+    }
+  }
+}

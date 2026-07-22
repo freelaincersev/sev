@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone validation experiments — plain Node scripts, not app code.
+    "experiments/**",
+    // Local stdio MCP server — plain Node script, not app code.
+    "mcp/**",
   ]),
 ]);
 

@@ -20,7 +20,7 @@ import {
   DEFAULT_CHAT_MODEL_KEY,
   type ChatModelKey,
 } from "@/lib/retrieval/models";
-import type { RetrievedChunk } from "@/lib/retrieval/search";
+import type { RetrievedChunk, RetrievedDecision } from "@/lib/retrieval/search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -30,13 +30,13 @@ const SUGGESTIONS = [
   "What did I save most recently?",
 ];
 
-/** Render an answer, turning inline [n] markers into styled citation chips. */
+/** Render an answer, turning inline [n] / [Dn] markers into styled citation chips. */
 function AnswerText({ text }: { text: string }) {
-  const parts = text.split(/(\[\d+\](?:\[\d+\])*)/g);
+  const parts = text.split(/(\[D?\d+\](?:\[D?\d+\])*)/g);
   return (
     <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
       {parts.map((part, i) =>
-        /^(\[\d+\])+$/.test(part) ? (
+        /^(\[D?\d+\])+$/.test(part) ? (
           <sup key={i} className="mx-0.5 font-medium text-primary">
             {part}
           </sup>
@@ -56,8 +56,48 @@ type Message =
       query?: string;
       model?: string;
       results?: RetrievedChunk[];
+      decisions?: RetrievedDecision[];
       saved?: boolean;
     };
+
+/** Decision records the answer drew on — cited inline as [Dn]. */
+function DecisionSources({ decisions }: { decisions: RetrievedDecision[] }) {
+  return (
+    <details className="rounded-lg border bg-muted/30 px-3 py-2">
+      <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+        Decision records ({decisions.length})
+      </summary>
+      <ol className="mt-2 space-y-3">
+        {decisions.map((d, i) => (
+          <li key={d.id}>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="shrink-0 text-xs font-semibold text-primary">
+                [D{i + 1}]
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                {d.decision}
+              </span>
+              <Badge
+                variant={d.verification === "verified" ? "default" : "outline"}
+                className="shrink-0 text-[10px]"
+              >
+                {d.verification}
+              </Badge>
+              {d.status === "superseded" && (
+                <Badge variant="secondary" className="shrink-0 text-[10px]">
+                  superseded
+                </Badge>
+              )}
+            </div>
+            {d.rationale ? (
+              <p className="text-xs text-muted-foreground">{d.rationale}</p>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
 
 function Sources({ results }: { results: RetrievedChunk[] }) {
   return (
@@ -165,6 +205,7 @@ export function AskPanel({
           query: res.query,
           model: res.model,
           results: res.results,
+          decisions: res.decisions,
         },
       ]);
     });
@@ -275,6 +316,9 @@ export function AskPanel({
                           : "s"}{" "}
                         · full vault not sent
                       </p>
+                    ) : null}
+                    {m.decisions && m.decisions.length > 0 ? (
+                      <DecisionSources decisions={m.decisions} />
                     ) : null}
                     {m.results && m.results.length > 0 ? (
                       <Sources results={m.results} />

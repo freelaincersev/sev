@@ -1,8 +1,10 @@
 import { AskPanel } from "@/components/ask-panel";
 import { DataUsagePanel } from "@/components/data-usage-panel";
+import { DecisionsPanel } from "@/components/decisions-panel";
 import { ReuseCard } from "@/components/reuse-card";
 import { SourcesPanel } from "@/components/sources-panel";
 import { WorkspaceTabs } from "@/components/workspace-tabs";
+import { getProjectDecisions } from "@/lib/data/decisions";
 import { listFolders } from "@/lib/data/folders";
 import { listPackets } from "@/lib/data/packets";
 import { getRelatedProjects } from "@/lib/data/related";
@@ -20,13 +22,15 @@ export default async function ProjectPage({
   const { folder, tab, q } = await searchParams;
   const folderId = folder || undefined;
 
-  const [sources, packets, summary, folders, related] = await Promise.all([
-    listSources(id, folderId),
-    listPackets(id),
-    getProjectSummary(id),
-    listFolders(id),
-    getRelatedProjects(id),
-  ]);
+  const [sources, packets, summary, folders, related, decisions] =
+    await Promise.all([
+      listSources(id, folderId),
+      listPackets(id),
+      getProjectSummary(id),
+      listFolders(id),
+      getRelatedProjects(id),
+      getProjectDecisions(id),
+    ]);
   const activeFolder = folderId
     ? folders.find((f) => f.id === folderId)
     : undefined;
@@ -58,6 +62,13 @@ export default async function ProjectPage({
           focusToken={folderId}
           defaultKey={tab === "usage" ? "usage" : undefined}
           tabs={[
+            {
+              key: "decisions",
+              label: "Decisions",
+              content: (
+                <DecisionsPanel projectId={id} decisions={decisions} />
+              ),
+            },
             {
               key: "sources",
               label: "Sources",

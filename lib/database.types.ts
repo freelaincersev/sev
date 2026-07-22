@@ -232,6 +232,91 @@ export type Database = {
           },
         ]
       }
+      decisions: {
+        Row: {
+          alternatives: Json
+          conditions: string | null
+          created_at: string
+          decided_at: string | null
+          decision: string
+          embedding: string | null
+          evidence: Json
+          id: string
+          importance: string | null
+          project_id: string
+          rationale: string | null
+          source_id: string | null
+          status: string
+          supersedes: string | null
+          updated_at: string
+          user_id: string
+          verification: string
+          verified_at: string | null
+        }
+        Insert: {
+          alternatives?: Json
+          conditions?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decision: string
+          embedding?: string | null
+          evidence?: Json
+          id?: string
+          importance?: string | null
+          project_id: string
+          rationale?: string | null
+          source_id?: string | null
+          status?: string
+          supersedes?: string | null
+          updated_at?: string
+          user_id: string
+          verification?: string
+          verified_at?: string | null
+        }
+        Update: {
+          alternatives?: Json
+          conditions?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decision?: string
+          embedding?: string | null
+          evidence?: Json
+          id?: string
+          importance?: string | null
+          project_id?: string
+          rationale?: string | null
+          source_id?: string | null
+          status?: string
+          supersedes?: string | null
+          updated_at?: string
+          user_id?: string
+          verification?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_supersedes_fkey"
+            columns: ["supersedes"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       embeddings: {
         Row: {
           chunk_id: string
@@ -704,6 +789,26 @@ export type Database = {
           page: number
           similarity: number
           source_id: string
+        }[]
+      }
+      match_decisions: {
+        Args: {
+          match_count?: number
+          p_project_id?: string
+          query_embedding: string
+        }
+        Returns: {
+          alternatives: Json
+          conditions: string
+          decided_at: string
+          decision: string
+          evidence: Json
+          id: string
+          project_id: string
+          rationale: string
+          similarity: number
+          status: string
+          verification: string
         }[]
       }
       related_sources: {

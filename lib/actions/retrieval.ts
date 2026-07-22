@@ -1,8 +1,13 @@
 "use server";
 
 import { generateAnswer, type ChatTurn } from "@/lib/retrieval/answer";
-import { searchChunks, type RetrievedChunk } from "@/lib/retrieval/search";
-import { EMBEDDING_MODEL } from "@/lib/ingest/embed";
+import {
+  searchChunks,
+  searchDecisions,
+  type RetrievedChunk,
+  type RetrievedDecision,
+} from "@/lib/retrieval/search";
+import { embedTexts, EMBEDDING_MODEL } from "@/lib/ingest/embed";
 import { checkLimit } from "@/lib/usage/limits";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,6 +68,8 @@ export type AskState = {
   answer?: string;
   model?: string;
   results?: RetrievedChunk[];
+  /** Decision records retrieved for this answer — cited inline as [Dn]. */
+  decisions?: RetrievedDecision[];
 };
 
 /**
@@ -95,13 +102,21 @@ export async function askQuestion(
   try {
     // Retrieve against the follow-up folded with the prior answer so
     // back-references resolve; the user still sees just their question.
-    const { chunks, queryTokens } = await searchChunks(supabase, {
-      projectId,
-      folderId,
-      query: buildRetrievalQuery(query, history),
-    });
+    // One embedding serves both chunk and decision retrieval.
+    const retrievalQuery = buildRetrievalQuery(query, history);
+    const [queryVector] = await embedTexts([retrievalQuery]);
 
-    if (chunks.length === 0) {
+    const [{ chunks, queryTokens }, decisions] = await Promise.all([
+      searchChunks(supabase, {
+        projectId,
+        folderId,
+        query: retrievalQuery,
+        queryVector,
+      }),
+      searchDecisions(supabase, { projectId, queryVector }),
+    ]);
+
+    if (chunks.length === 0 && decisions.length === 0) {
       await supabase.from("usage_events").insert({
         user_id: user.id,
         project_id: projectId,
@@ -118,7 +133,16 @@ export async function askQuestion(
       };
     }
 
-    const answer = await generateAnswer(query, chunks, modelKey, history);
+    const answer = await generateAnswer(query, chunks, modelKey, history, decisions);
+
+    // North Star instrumentation: which decision records were injected into
+    // the context, and which the answer actually cited ([Dn]) — "적중-사용".
+    const citedIdx = new Set(
+      [...answer.text.matchAll(/\[D(\d+)\]/g)].map((m) => Number(m[1]) - 1),
+    );
+    const adoptedIds = decisions
+      .filter((_, i) => citedIdx.has(i))
+      .map((d) => d.id);
 
     await supabase.from("usage_events").insert([
       {
@@ -133,11 +157,42 @@ export async function askQuestion(
         project_id: projectId,
         event_type: "generation",
         tokens: answer.tokens,
-        metadata: { model: answer.apiModel, snippets: chunks.length },
+        metadata: {
+          model: answer.apiModel,
+          snippets: chunks.length,
+          decisions: decisions.length,
+        },
       },
+      ...(decisions.length > 0
+        ? [
+            {
+              user_id: user.id,
+              project_id: projectId,
+              event_type: "decision.injected",
+              metadata: { decision_ids: decisions.map((d) => d.id) },
+            },
+          ]
+        : []),
+      ...(adoptedIds.length > 0
+        ? [
+            {
+              user_id: user.id,
+              project_id: projectId,
+              event_type: "decision.adopted",
+              metadata: { decision_ids: adoptedIds },
+            },
+          ]
+        : []),
     ]);
 
-    return { ok: true, query, answer: answer.text, model: answer.model, results: chunks };
+    return {
+      ok: true,
+      query,
+      answer: answer.text,
+      model: answer.model,
+      results: chunks,
+      decisions,
+    };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Ask failed.";
     return { error: msg, query };
